@@ -3,10 +3,28 @@ import numpy as np
 from scipy.misc import imread, imsave, imresize
 import glob
 
-not_sign_paths = glob.glob('not_sign/*.png')
-sign_paths = glob.glob('sign/*/sign_*.png')
+class DataCleaner():
+    """
+    """
 
-for path in sign_paths:
-    img = imread(path)
-    img = imresize(img, (64, 64))
-    imsave(path, img)
+    def __init__(self, not_sign_dir_path, sign_dir_path):
+        self.sign_dir = sign_dir_path
+        self.not_sign_dir = not_sign_dir_path
+
+    def clean(self):
+
+        not_sign_paths = glob.glob(self.not_sign_dir + '/*.png')
+        sign_paths = glob.glob(self.sign_dir + '/*/*.png')
+
+        self.sizer(not_sign_paths, 64, 64)
+        self.sizer(sign_paths, 64, 64)
+
+    def sizer(self, path_list, width, height):
+
+        for path in path_list:
+            img = imread(path)
+            img = imresize(img, (width, height))
+            imsave(path, img)
+
+clean = DataCleaner('0_not_sign', '1_sign')
+clean.clean()
