@@ -17,11 +17,21 @@ class DataCleaner():
         self.notSignDir = notSignDirPath
 
     def sizer(self, pathList, width, height):
-
-        for path in pathList:
-            img = imread(path)
-            img = imresize(img, (width, height))
-            imsave(path, img)
+        """
+        Returns the image data resized to (64, 64, 3) only if the first image
+        is not already (64, 64, 3), otherwise, they are already the proper shape
+        so this will pass
+        :param pathList: List of image paths
+        :param width: Desired width of images
+        :param height: Desired height of images
+        """
+        if(cv2.imread(pathList[0]).shape != (64, 64, 3)):
+            for path in pathList:
+                img = cv2.imread(path)
+                img = imresize(img, (width, height))
+                imsave(path, img)
+        else:
+            pass
 
     def cleanData(self):
 
@@ -77,14 +87,6 @@ class DataCleaner():
                 return xTrain, xValidation, xTest, yTrain, yValidation, yTest
 
 
-
-
 clean = DataCleaner('0_not_sign', '1_sign')
 clean.cleanData()
 xTrain, xVal, xTest, yTrain, yVal, yTest = clean.getData()
-print(len(xTrain))
-print(len(xVal))
-print(len(xTest))
-print(len(yTrain))
-print(len(yVal))
-print(len(yTest))
