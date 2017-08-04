@@ -25,28 +25,28 @@ class DataCleaner():
         :param width: Desired width of images
         :param height: Desired height of images
         """
-        if(cv2.imread(pathList[0]).shape != (64, 64, 3)):
-            for path in pathList:
-                img = cv2.imread(path)
-                img = imresize(img, (width, height))
-                imsave(path, img)
-        else:
-            pass
+        for path in pathList:
+            img = cv2.imread(path)
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = imresize(img, (width, height))
+            imsave(path, img)
+
 
     def cleanData(self):
 
         notSignPaths = glob.glob(self.notSignDir + '/*.png')
         signPaths = glob.glob(self.signDir + '/*/*.png')
 
-        self.sizer(notSignPaths, 64, 64)
-        self.sizer(signPaths, 64, 64)
+        if((input('Do images need resized? (y/n): ')) == 'y'):
+            self.sizer(notSignPaths, 64, 64)
+            self.sizer(signPaths, 64, 64)
 
-    def getData(self):
+    def getDetectionData(self):
 
-        dataFile = 'dataset.p'
+        dataDetectionFile = 'data_detection.p'
 
-        if not os.path.isfile(dataFile):
-            print("\nAttempting to generate new data file...\n")
+        if not os.path.isfile(dataDetectionFile):
+            print("\nAttempting to generate new detection data file...\n")
 
             signFolder = '1_sign/'
             nonSignFolder = '0_not_sign/'
@@ -70,11 +70,65 @@ class DataCleaner():
                 data = {'xTrain': xTrain, 'xValidation': xVal, 'xTest': xTest,
                         'yTrain': yTrain, 'yValidation': yVal, 'yTest': yTest}
 
-                pickle.dump(data, open(dataFile, 'wb'))
+                pickle.dump(data, open(dataDetectionFile, 'wb'))
 
                 return xTrain, xVal, xTest, yTrain, yVal, yTest
         else:
-            with open(dataFile, mode='rb') as f:
+            with open(dataDetectionFile, mode='rb') as f:
+                data = pickle.load(f)
+
+                xTrain = data['xTrain']
+                xValidation = data['xValidation']
+                xTest = data['xTest']
+                yTrain = data['yTrain']
+                yValidation = data['yValidation']
+                yTest = data['yTest']
+
+                return xTrain, xValidation, xTest, yTrain, yValidation, yTest
+
+    def getRecognitionData(self):
+
+        dataRecognitionFile = 'data_recognition.p'
+
+        if not os.path.isfile(dataRecognitionFile):
+            print("\nAttempting to generate new recognition data file...\n")
+
+            signFolder = '1_sign/'
+
+            if not os.path.isdir(signFolder):
+                print("No samples found.\nExiting.")
+                return None, None, None, None, None, None
+            else:
+                signLabels = []
+                uniqueSignFolders = glob.glob('{}*/'.format(signFolder))
+                uniqueSignPaths = glob.glob('{}*/*.png'.format(signFolder))
+
+                for path in uniqueSignFolders:
+                    signLabels.append(int(path.split('/')[1].split('_')[0]))
+                signLabels = (sorted(signLabels))
+
+                img = cv2.imread(uniqueSignPaths[0])
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                print(img)
+                return
+
+                imageSamplesFiles = signFiles + nonSignFiles
+                y = np.concatenate((np.ones(len(signFiles)), np.zeros(len(nonSignFiles))))
+
+                imageSamplesFiles, y = shuffle(imageSamplesFiles, y)
+
+                xTrain, xTest, yTrain, yTest = trainTestSplit(imageSamplesFiles, y, test_size=0.2, random_state=42)
+
+                xTrain, xVal, yTrain, yVal = trainTestSplit(xTrain, yTrain, test_size=0.2, random_state=42)
+
+                data = {'xTrain': xTrain, 'xValidation': xVal, 'xTest': xTest,
+                        'yTrain': yTrain, 'yValidation': yVal, 'yTest': yTest}
+
+                pickle.dump(data, open(dataDetectionFile, 'wb'))
+
+                return xTrain, xVal, xTest, yTrain, yVal, yTest
+        else:
+            with open(dataDetectionFile, mode='rb') as f:
                 data = pickle.load(f)
 
                 xTrain = data['xTrain']
@@ -88,5 +142,6 @@ class DataCleaner():
 
 
 clean = DataCleaner('0_not_sign', '1_sign')
-clean.cleanData()
-xTrain, xVal, xTest, yTrain, yVal, yTest = clean.getData()
+#clean.cleanData()
+#xTrainDetect, xValDetect, xTestDetect, yTrainDetect, yValDetect, yTestDetect = clean.getDetectionData()
+clean.getRecognitionData()
