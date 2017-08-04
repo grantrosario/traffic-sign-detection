@@ -67,24 +67,24 @@ class DataCleaner():
 
                 xTrain, xVal, yTrain, yVal = trainTestSplit(xTrain, yTrain, test_size=0.2, random_state=42)
 
-                data = {'xTrain': xTrain, 'xValidation': xVal, 'xTest': xTest,
+                detectionData = {'xTrain': xTrain, 'xValidation': xVal, 'xTest': xTest,
                         'yTrain': yTrain, 'yValidation': yVal, 'yTest': yTest}
 
-                pickle.dump(data, open(dataDetectionFile, 'wb'))
+                pickle.dump(detectionData, open(dataDetectionFile, 'wb'))
 
-                return xTrain, xVal, xTest, yTrain, yVal, yTest
+                return detectionData
         else:
             with open(dataDetectionFile, mode='rb') as f:
                 data = pickle.load(f)
 
-                xTrain = data['xTrain']
-                xValidation = data['xValidation']
-                xTest = data['xTest']
-                yTrain = data['yTrain']
-                yValidation = data['yValidation']
-                yTest = data['yTest']
+                detectionData = {'xTrain': data['xTrain'],
+                                 'xValidation': data['xValidation'],
+                                 'xTest': data['xTest'],
+                                 'yTrain': data['yTrain'],
+                                 'yValidation': data['yValidation'],
+                                 'yTest': data['yTest']}
 
-                return xTrain, xValidation, xTest, yTrain, yValidation, yTest
+                return detectionData
 
     def getRecognitionData(self):
 
@@ -143,5 +143,5 @@ class DataCleaner():
 
 clean = DataCleaner('0_not_sign', '1_sign')
 #clean.cleanData()
-#xTrainDetect, xValDetect, xTestDetect, yTrainDetect, yValDetect, yTestDetect = clean.getDetectionData()
-clean.getRecognitionData()
+#detectionData = clean.getDetectionData()
+#clean.getRecognitionData()
