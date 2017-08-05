@@ -43,7 +43,7 @@ class DataCleaner():
 
     def getDetectionData(self):
 
-        dataDetectionFile = 'data_detection.p'
+        dataDetectionFile = 'detection_data.p'
 
         if not os.path.isfile(dataDetectionFile):
             print("\nAttempting to generate new detection data file...\n")
@@ -88,7 +88,7 @@ class DataCleaner():
 
     def getRecognitionData(self):
 
-        dataRecognitionFile = 'data_recognition.p'
+        dataRecognitionFile = 'recognition_data.p'
 
         if not os.path.isfile(dataRecognitionFile):
             print("\nAttempting to generate new recognition data file...\n")
@@ -103,45 +103,48 @@ class DataCleaner():
                 uniqueSignFolders = glob.glob('{}*/'.format(signFolder))
                 uniqueSignPaths = glob.glob('{}*/*.png'.format(signFolder))
 
-                for path in uniqueSignFolders:
-                    signLabels.append(int(path.split('/')[1].split('_')[0]))
-                signLabels = (sorted(signLabels))
+                # for path in uniqueSignFolders:
+                #     signLabels.append(int(path.split('/')[1].split('_')[0]))
+                # signLabels = (sorted(signLabels))
 
-                img = cv2.imread(uniqueSignPaths[0])
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                print(img)
-                return
+                for path in uniqueSignPaths:
+                    if (path == uniqueSignPaths[0]):
+                        count = 0
+                        imageLabel = int((path.split("/")[-1]).split("_")[0])
+                        signLabels.append(imageLabel)
+                        img = cv2.imread(path)
+                        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                        signFeatures = np.array([img])
+                    else:
+                        count += 1
+                        imageLabel = int((path.split("/")[-1]).split("_")[0])
+                        signLabels.append(imageLabel)
+                        img = cv2.imread(path)
+                        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                        newArray = np.array([img])
+                        signFeatures = np.concatenate([signFeatures, newArray])
 
-                imageSamplesFiles = signFiles + nonSignFiles
-                y = np.concatenate((np.ones(len(signFiles)), np.zeros(len(nonSignFiles))))
+                signFeatures, signLabels = shuffle(signFeatures, signLabels)
 
-                imageSamplesFiles, y = shuffle(imageSamplesFiles, y)
 
-                xTrain, xTest, yTrain, yTest = trainTestSplit(imageSamplesFiles, y, test_size=0.2, random_state=42)
+                xTrain, xTest, yTrain, yTest = trainTestSplit(signFeatures, signLabels, test_size=0.2, random_state=42)
 
                 xTrain, xVal, yTrain, yVal = trainTestSplit(xTrain, yTrain, test_size=0.2, random_state=42)
 
-                data = {'xTrain': xTrain, 'xValidation': xVal, 'xTest': xTest,
-                        'yTrain': yTrain, 'yValidation': yVal, 'yTest': yTest}
 
-                pickle.dump(data, open(dataDetectionFile, 'wb'))
+                recognitionData = {'xTrain': xTrain, 'xValidation': xVal, 'xTest': xTest,
+                                   'yTrain': yTrain, 'yValidation': yVal, 'yTest': yTest}
 
-                return xTrain, xVal, xTest, yTrain, yVal, yTest
+                pickle.dump(recognitionData, open(dataRecognitionFile, 'wb'))
+
+                return recognitionData
         else:
-            with open(dataDetectionFile, mode='rb') as f:
+            with open(dataRecognitionFile, mode='rb') as f:
                 data = pickle.load(f)
-
-                xTrain = data['xTrain']
-                xValidation = data['xValidation']
-                xTest = data['xTest']
-                yTrain = data['yTrain']
-                yValidation = data['yValidation']
-                yTest = data['yTest']
-
-                return xTrain, xValidation, xTest, yTrain, yValidation, yTest
+                return data
 
 
 clean = DataCleaner('0_not_sign', '1_sign')
-#clean.cleanData()
-#detectionData = clean.getDetectionData()
-#clean.getRecognitionData()
+clean.cleanData()
+detectionData = clean.getDetectionData()
+recognitionData = clean.getRecognitionData()
