@@ -8,9 +8,7 @@ from sklearn.model_selection import train_test_split as trainTestSplit
 from sklearn.utils import shuffle
 
 
-class DataCleaner():
-    """
-    """
+class DataMaker:
 
     def __init__(self, notSignDirPath, signDirPath):
         self.signDir = signDirPath
@@ -30,7 +28,7 @@ class DataCleaner():
             imsave(path, img)
 
 
-    def cleanData(self):
+    def sizeData(self):
 
         notSignPaths = glob.glob(self.notSignDir + '/*.png')
         signPaths = glob.glob(self.signDir + '/*/*.png')
@@ -101,10 +99,6 @@ class DataCleaner():
                 uniqueSignFolders = glob.glob('{}*/'.format(signFolder))
                 uniqueSignPaths = glob.glob('{}*/*.png'.format(signFolder))
 
-                # for path in uniqueSignFolders:
-                #     signLabels.append(int(path.split('/')[1].split('_')[0]))
-                # signLabels = (sorted(signLabels))
-
                 for path in uniqueSignPaths:
                     if (path == uniqueSignPaths[0]):
                         count = 0
@@ -141,8 +135,12 @@ class DataCleaner():
                 data = pickle.load(f)
                 return data
 
+def main():
+    clean = DataMaker('0_not_sign', '1_sign')
+    clean.sizeData()
+    detectionData = clean.getDetectionData()
+    recognitionData = clean.getRecognitionData()
 
-clean = DataCleaner('0_not_sign', '1_sign')
-clean.cleanData()
-detectionData = clean.getDetectionData()
-recognitionData = clean.getRecognitionData()
+
+if __name__ == '__main__':
+    main()
