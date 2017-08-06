@@ -53,7 +53,7 @@ class DataCleaner():
 
             if not os.path.isdir(signFolder) or not os.path.isdir(nonSignFolder):
                 print("No samples found.\nExiting.")
-                return None, None, None, None, None, None
+                return None
             else:
                 signFiles = glob.glob('{}*/*.png'.format(signFolder))
                 nonSignFiles = glob.glob('{}*.png'.format(nonSignFolder))
@@ -97,7 +97,7 @@ class DataCleaner():
 
             if not os.path.isdir(signFolder):
                 print("No samples found.\nExiting.")
-                return None, None, None, None, None, None
+                return None
             else:
                 signLabels = []
                 uniqueSignFolders = glob.glob('{}*/'.format(signFolder))
