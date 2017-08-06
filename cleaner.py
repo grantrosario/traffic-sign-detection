@@ -18,9 +18,7 @@ class DataCleaner():
 
     def sizer(self, pathList, width, height):
         """
-        Returns the image data resized to (64, 64, 3) only if the first image
-        is not already (64, 64, 3), otherwise, they are already the proper shape
-        so this will pass
+        Returns the image data resized to (64, 64, 3)
         :param pathList: List of image paths
         :param width: Desired width of images
         :param height: Desired height of images
