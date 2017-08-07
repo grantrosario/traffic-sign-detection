@@ -10,9 +10,12 @@ from sklearn.utils import shuffle
 
 class DataMaker:
 
-    def __init__(self, notSignDirPath, signDirPath):
-        self.signDir = signDirPath
-        self.notSignDir = notSignDirPath
+    def __init__(self, notSignDirPath='0_not_sign/', signDirPath='1_sign/'):
+        self.notSignFolder = notSignDirPath
+        self.notSignFiles = glob.glob('{}*.png'.format(self.notSignDir))
+        self.signFolder = signDirPath
+        self.signFiles = glob.glob('{}*/*.png'.format(self.signDir))
+
 
     def sizer(self, pathList, width, height):
         """
@@ -29,33 +32,33 @@ class DataMaker:
 
 
     def sizeData(self):
-
-        notSignPaths = glob.glob(self.notSignDir + '/*.png')
-        signPaths = glob.glob(self.signDir + '/*/*.png')
-
+        """
+        Asks user if images need to be resized in case there is new data.
+        If yes, calls sizer(), if no, then nothing happens.
+        """
         if((input('Do images need resized? (y/n): ')) == 'y'):
-            self.sizer(notSignPaths, 64, 64)
-            self.sizer(signPaths, 64, 64)
+            self.sizer(self.signFiles, 64, 64)
+            self.sizer(self.notSignFiles, 64, 64)
+
 
     def getDetectionData(self):
-
+        """
+        Gather the images and labels for detecting signs.
+        Returns a dictionary with Training, Validation, and Test data and labels
+        Also creates a pickle file for storing dictionary
+        """
         dataDetectionFile = 'detection_data.p'
 
         if not os.path.isfile(dataDetectionFile):
             print("\nAttempting to generate new detection data file...\n")
 
-            signFolder = '1_sign/'
-            nonSignFolder = '0_not_sign/'
-
-            if not os.path.isdir(signFolder) or not os.path.isdir(nonSignFolder):
+            if not os.path.isdir(self.signFolder) or not os.path.isdir(self.notSignFolder):
                 print("No samples found.\nExiting.")
                 return None
             else:
-                signFiles = glob.glob('{}*/*.png'.format(signFolder))
-                nonSignFiles = glob.glob('{}*.png'.format(nonSignFolder))
 
-                imageSamplesFiles = signFiles + nonSignFiles
-                y = np.concatenate((np.ones(len(signFiles)), np.zeros(len(nonSignFiles))))
+                imageSamplesFiles = self.signFiles + self.notSignFiles
+                y = np.concatenate((np.ones(len(self.signFiles)), np.zeros(len(self.notSignFiles))))
 
                 imageSamplesFiles, y = shuffle(imageSamplesFiles, y)
 
@@ -63,8 +66,12 @@ class DataMaker:
 
                 xTrain, xVal, yTrain, yVal = trainTestSplit(xTrain, yTrain, test_size=0.2, random_state=42)
 
-                detectionData = {'xTrain': xTrain, 'xValidation': xVal, 'xTest': xTest,
-                        'yTrain': yTrain, 'yValidation': yVal, 'yTest': yTest}
+                detectionData = {'xTrain': xTrain,
+                                 'xValidation': xVal,
+                                 'xTest': xTest,
+                                 'yTrain': yTrain,
+                                 'yValidation': yVal,
+                                 'yTest': yTest}
 
                 pickle.dump(detectionData, open(dataDetectionFile, 'wb'))
 
@@ -83,6 +90,11 @@ class DataMaker:
                 return detectionData
 
     def getRecognitionData(self):
+        """
+        Gather the images and labels for recognizing signs.
+        Returns a dictionary with Training, Validation, and Test data
+        Also creates a pickle file for storing dictionary
+        """
 
         dataRecognitionFile = 'recognition_data.p'
 
@@ -136,6 +148,9 @@ class DataMaker:
                 return data
 
 def main():
+    """
+    Pipeline to run if called from command line
+    """
     clean = DataMaker('0_not_sign', '1_sign')
     clean.sizeData()
     detectionData = clean.getDetectionData()
