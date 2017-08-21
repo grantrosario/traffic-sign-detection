@@ -12,9 +12,9 @@ class DataMaker:
 
     def __init__(self, notSignDirPath='0_not_sign/', signDirPath='1_sign/'):
         self.notSignFolder = notSignDirPath
-        self.notSignFiles = glob.glob('{}*.png'.format(self.notSignDir))
+        self.notSignFiles = glob.glob('{}*.png'.format(self.notSignFolder))
         self.signFolder = signDirPath
-        self.signFiles = glob.glob('{}*/*.png'.format(self.signDir))
+        self.signFiles = glob.glob('{}*/*.png'.format(self.signFolder))
 
 
     def sizer(self, pathList, width, height):
@@ -55,14 +55,31 @@ class DataMaker:
             if not os.path.isdir(self.signFolder) or not os.path.isdir(self.notSignFolder):
                 print("No samples found.\nExiting.")
                 return None
-            else:
 
-                imageSamplesFiles = self.signFiles + self.notSignFiles
+            else:
+                imageSampleFiles = self.signFiles + self.notSignFiles
+                pathTrack = []
+                for path in imageSampleFiles:
+                    if (path == imageSampleFiles[0]):
+                        pathTrack.append(path)
+                        img = cv2.imread(path)
+                        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                        signFeatures = np.array([img])
+
+                    else:
+                        pathTrack.append(path)
+                        img = cv2.imread(path)
+                        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                        newArray = np.array([img])
+                        signFeatures = np.concatenate([signFeatures, newArray])
+
+
                 y = np.concatenate((np.ones(len(self.signFiles)), np.zeros(len(self.notSignFiles))))
 
-                imageSamplesFiles, y = shuffle(imageSamplesFiles, y)
+                signFeatures, y = shuffle(signFeatures, y)
 
-                xTrain, xTest, yTrain, yTest = trainTestSplit(imageSamplesFiles, y, test_size=0.2, random_state=42)
+
+                xTrain, xTest, yTrain, yTest = trainTestSplit(signFeatures, y, test_size=0.2, random_state=42)
 
                 xTrain, xVal, yTrain, yVal = trainTestSplit(xTrain, yTrain, test_size=0.2, random_state=42)
 
@@ -113,14 +130,12 @@ class DataMaker:
 
                 for path in uniqueSignPaths:
                     if (path == uniqueSignPaths[0]):
-                        count = 0
                         imageLabel = int((path.split("/")[-1]).split("_")[0])
                         signLabels.append(imageLabel)
                         img = cv2.imread(path)
                         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                         signFeatures = np.array([img])
                     else:
-                        count += 1
                         imageLabel = int((path.split("/")[-1]).split("_")[0])
                         signLabels.append(imageLabel)
                         img = cv2.imread(path)
@@ -151,7 +166,7 @@ def main():
     """
     Pipeline to run if called from command line
     """
-    clean = DataMaker('0_not_sign', '1_sign')
+    clean = DataMaker('0_not_sign/', '1_sign/')
     clean.sizeData()
     detectionData = clean.getDetectionData()
     recognitionData = clean.getRecognitionData()
