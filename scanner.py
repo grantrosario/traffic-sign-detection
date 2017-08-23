@@ -85,27 +85,37 @@ window_img = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=6)
 # plt.show()
 
 my_images = []
-crp = img[1570:1750, 1590:1740]
+#crp = img[1570:1750, 1590:1740]
+crp = img[1280:1440, 1270:1440] # sign
+#crp = img[1280:1440, 1290:1460]
 # plt.imshow(crp)
 # plt.show()
 
-# from model import *
-# image = cv2.cvtColor(crp, cv2.COLOR_BGR2RGB)
-#
-# gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-# blur = cv2.GaussianBlur(gray, (5,5), 20.0)
-# image = cv2.addWeighted(gray, 2, blur, -1, 0)
-# image = cv2.equalizeHist(image)
-# image = equalize_hist(image)
-# sized = cv2.resize(image, (64,64))
-# my_images.append(sized)
-#
-# my_images = np.asarray(my_images)
-# my_images = np.reshape(my_images, (-1, 64, 64, 1))
-# my_labels = [0]
-#
-# with tf.Session() as sess:
-#     saver.restore(sess, tf.train.latest_checkpoint('nets/.'))
-#
-#     my_accuracy = evaluate(my_images, my_labels)
-#     print("\n\nMy Accuracy = {:.3f}".format(my_accuracy))
+from model import *
+image = cv2.cvtColor(crp, cv2.COLOR_BGR2RGB)
+
+gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+blur = cv2.GaussianBlur(gray, (5,5), 20.0)
+image = cv2.addWeighted(gray, 2, blur, -1, 0)
+image = cv2.equalizeHist(image)
+image = equalize_hist(image)
+sized = cv2.resize(image, (64,64))
+my_images.append(sized)
+
+my_images = np.asarray(my_images)
+my_images = np.reshape(my_images, (-1, 64, 64, 1))
+my_labels = [1]
+in_img = tf.placeholder(tf.float32, (None, 64, 64, 1))
+answer = tf.placeholder(tf.int64, (None,))
+
+with tf.Session() as sess:
+    #saver = tf.train.import_meta_graph('nets/model.meta')
+    saver.restore(sess, tf.train.latest_checkpoint('nets/.'))
+    graph = tf.get_default_graph()
+    print("Model Restored.")
+
+    print(sess.run(prediction, feed_dict={x: my_images, keep_prob: 1.}))
+
+    my_accuracy = evaluate(my_images, my_labels)
+
+    print("\n\nMy Accuracy = {:.3f}".format(my_accuracy))

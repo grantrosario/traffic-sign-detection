@@ -7,6 +7,9 @@ import cv2
 from sklearn.utils import shuffle
 from skimage.exposure import equalize_hist
 from tensorflow.contrib.layers import flatten
+from keras.models import Sequential
+from keras.layers import Conv2D, MaxPooling2D
+from keras.layers import Activation, Dropout, Flatten, Dense
 
 data_file = "detection_data.p"
 
@@ -105,9 +108,6 @@ X_train, y_train = shuffle(X_train, y_train)
 #=========BUILD ARCHITECTURE========
 #===================================
 ### Define architecture.
-import tensorflow as tf
-from tensorflow.contrib.layers import flatten
-
 EPOCHS = 20
 BATCH_SIZE = 64
 beta = 0.001
@@ -125,7 +125,6 @@ def LeNet(x):
 
     # Activation.
     conv1 = tf.nn.relu(conv1)
-
     # Pooling. Input = 60x60x6. Output = 30x30x6.
     conv1 = tf.nn.max_pool(conv1, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'VALID')
 
@@ -168,9 +167,28 @@ def LeNet(x):
     fc3_W  = tf.Variable(tf.truncated_normal(shape=(500,120), mean = mu, stddev = sigma))
     fc3_b  = tf.Variable(tf.zeros(120))
     regularizers += tf.nn.l2_loss(fc3_W)
-    logits = tf.matmul(fc2, fc3_W) + fc3_b
+    logits = tf.add(tf.matmul(fc2, fc3_W), fc3_b, "op_logits")
 
     return [logits, regularizers]
+
+
+rate = 0.0008
+keep_prob = tf.placeholder(tf.float32) # probablity of keeping for dropout
+x = tf.placeholder(tf.float32, (None, 64, 64, 1), name="input_data")
+y = tf.placeholder(tf.int32, (None))
+one_hot_y = tf.one_hot(y, 120)
+
+logits, regularizers = LeNet(x)
+cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=one_hot_y)
+loss_operation = tf.reduce_mean(cross_entropy)
+loss_operation = tf.reduce_mean(loss_operation + beta * regularizers) # L2 regularization
+optimizer = tf.train.AdamOptimizer(learning_rate = rate)
+training_operation = optimizer.minimize(loss_operation)
+
+prediction = tf.argmax(logits, 1, name="prediction")
+correct_prediction = tf.equal(prediction, tf.argmax(one_hot_y, 1))
+accuracy_operation = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+saver = tf.train.Saver()
 
 #=============EVALUATION============
 #===================================
@@ -191,24 +209,6 @@ def evaluate(X_data, y_data):
 ### Calculate and report the accuracy on the training and validation set.
 ### FEATURES AND LABELS
 if((input('Would you like to train? (y/n): ')) == 'y'):
-    rate = 0.0008
-
-    keep_prob = tf.placeholder(tf.float32) # probablity of keeping for dropout
-    x = tf.placeholder(tf.float32, (None, 64, 64, 1))
-    y = tf.placeholder(tf.int32, (None))
-    one_hot_y = tf.one_hot(y, 120)
-
-    logits, regularizers = LeNet(x)
-    cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=one_hot_y)
-    loss_operation = tf.reduce_mean(cross_entropy)
-    loss_operation = tf.reduce_mean(loss_operation + beta * regularizers) # L2 regularization
-    optimizer = tf.train.AdamOptimizer(learning_rate = rate)
-    training_operation = optimizer.minimize(loss_operation)
-
-
-    correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(one_hot_y, 1))
-    accuracy_operation = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-    saver = tf.train.Saver()
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
@@ -225,11 +225,11 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
 
             validation_accuracy = evaluate(X_valid, y_valid)
             training_accuracy = evaluate(X_train, y_train)
-    #         test_accuracy = evaluate(X_test, y_test)
+            # test_accuracy = evaluate(X_test, y_test)
             print("EPOCH {} ...".format(i+1))
             print("Validation Accuracy = {:.3f}".format(validation_accuracy))
             print("Training Accuracy = {:.3f}".format(training_accuracy))
-    #         print("Test Accuracy = {:.3f}".format(test_accuracy))
+            # print("Test Accuracy = {:.3f}".format(test_accuracy))
             print()
 
         saver.save(sess, './nets/model')
