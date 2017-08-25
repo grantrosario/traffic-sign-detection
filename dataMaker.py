@@ -30,15 +30,55 @@ class DataMaker:
             img = imresize(img, (width, height))
             imsave(path, img)
 
+    def getMeans(pathList, dataType):
+        r_values = []
+        g_values = []
+        b_values = []
+        count = 0
+        for path in pathList:
+            count += 1
+            img = cv2.imread(path)
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            for r_array in img[:,:,0]:
+                for r_val in r_array:
+                    r_values.append(r_val)
+            for g_array in img[:,:,1]:
+                for g_val in g_array:
+                    g_values.append(g_val)
+            for b_array in img[:,:,2]:
+                for b_val in b_array:
+                    b_values.append(b_val)
+        if(dataType == "detection"):
+            print("{} detection images: mean is [r,g,b] => [{}, {}, {}]".format(count,
+                                                                               (sum(r_values)/len(r_values)),
+                                                                               (sum(g_values)/len(g_values)),
+                                                                               (sum(b_values)/len(b_values))))
+        if(dataType == "recognition"):
+            print("{} recognition images: mean is [r,g,b] => [{}, {}, {}]".format(count,
+                                                                                 (sum(r_values)/len(r_values)),
+                                                                                 (sum(g_values)/len(g_values)),
+                                                                                 (sum(b_values)/len(b_values))))
 
-    def sizeData(self):
+
+
+    def processData(self):
         """
         Asks user if images need to be resized in case there is new data.
         If yes, calls sizer(), if no, then nothing happens.
         """
+        files = []
         if((input('Do images need resized? (y/n): ')) == 'y'):
-            self.sizer(self.signFiles, 64, 64)
-            self.sizer(self.notSignFiles, 64, 64)
+            for f in self.signFiles:
+                files.append(f)
+            for f in self.notSignFiles:
+                files.append(f)
+            self.sizer(files, 64, 64)
+        if((input('Calculate new means? (y/n): ')) == 'y'):
+            dataType = input('Detection or Recognition? (d/r): ')
+            if(dataType == 'd'):
+                self.getMeans(files, "detection")
+            elif(dataType == 'r'):
+                self.getMeans(files, "recognition")
 
 
     def getDetectionData(self):
@@ -167,9 +207,9 @@ def main():
     Pipeline to run if called from command line
     """
     clean = DataMaker('0_not_sign/', '1_sign/')
-    clean.sizeData()
+    clean.processData()
     detectionData = clean.getDetectionData()
-    recognitionData = clean.getRecognitionData()
+    #recognitionData = clean.getRecognitionData()
 
 
 if __name__ == '__main__':
