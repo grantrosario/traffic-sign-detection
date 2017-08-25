@@ -5,6 +5,7 @@ import pickle
 import random
 import cv2
 from sklearn.utils import shuffle
+from tqdm import tqdm
 from skimage.exposure import equalize_hist
 from tensorflow.contrib.layers import flatten
 from keras.models import Sequential
@@ -229,7 +230,7 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
         print()
         for i in range(EPOCHS):
             X_train, y_train = shuffle(X_train, y_train)
-            for offset in range(0, num_examples, BATCH_SIZE):
+            for offset in tqdm(range(0, num_examples, BATCH_SIZE)):
                 end = offset + BATCH_SIZE
                 batch_x, batch_y = X_train[offset:end], y_train[offset:end]
                 sess.run(training_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 0.5})
