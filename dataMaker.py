@@ -30,7 +30,7 @@ class DataMaker:
             img = imresize(img, (width, height))
             imsave(path, img)
 
-    def getMeans(pathList, dataType):
+    def getMeans(self, pathList, dataType):
         r_values = []
         g_values = []
         b_values = []
@@ -49,12 +49,12 @@ class DataMaker:
                 for b_val in b_array:
                     b_values.append(b_val)
         if(dataType == "detection"):
-            print("{} detection images: mean is [r,g,b] => [{}, {}, {}]".format(count,
+            print("{} detection images: means of [r,g,b] = [{}, {}, {}]".format(count,
                                                                                (sum(r_values)/len(r_values)),
                                                                                (sum(g_values)/len(g_values)),
                                                                                (sum(b_values)/len(b_values))))
         if(dataType == "recognition"):
-            print("{} recognition images: mean is [r,g,b] => [{}, {}, {}]".format(count,
+            print("{} recognition images: means of [r,g,b] = [{}, {}, {}]".format(count,
                                                                                  (sum(r_values)/len(r_values)),
                                                                                  (sum(g_values)/len(g_values)),
                                                                                  (sum(b_values)/len(b_values))))
@@ -67,11 +67,11 @@ class DataMaker:
         If yes, calls sizer(), if no, then nothing happens.
         """
         files = []
+        for f in self.signFiles:
+            files.append(f)
+        for f in self.notSignFiles:
+            files.append(f)
         if((input('Do images need resized? (y/n): ')) == 'y'):
-            for f in self.signFiles:
-                files.append(f)
-            for f in self.notSignFiles:
-                files.append(f)
             self.sizer(files, 64, 64)
         if((input('Calculate new means? (y/n): ')) == 'y'):
             dataType = input('Detection or Recognition? (d/r): ')

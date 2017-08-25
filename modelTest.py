@@ -7,6 +7,7 @@ import cv2
 from sklearn.utils import shuffle
 from skimage.exposure import equalize_hist
 from tensorflow.contrib.layers import flatten
+from scipy.misc import imread, imsave, imresize
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
@@ -38,10 +39,10 @@ n_classes = len(num_of_labels)
 #========VISUALIZATION==============
 #===================================
 
-# print("Number of training examples =", n_train)
-# print("Number of testing examples =", n_test)
-# print("Image data shape =", image_shape)
-# print("Number of classes =", n_classes)
+print("Number of training examples =", n_train)
+print("Number of testing examples =", n_test)
+print("Image data shape =", image_shape)
+print("Number of classes =", n_classes)
 
 # generate 5 random data points and show images
 # fig, axs = plt.subplots(1, 5, figsize=(15, 6))  # create plot boxes for images
@@ -72,38 +73,39 @@ n_classes = len(num_of_labels)
 def preprocess(X):
     t = []
     for i in range(0, len(X)):
-        gray = cv2.cvtColor(X[i], cv2.COLOR_RGB2GRAY)
-        blur = cv2.GaussianBlur(gray, (5,5), 20.0)
-        image = cv2.addWeighted(gray, 2, blur, -1, 0)
-        image = cv2.equalizeHist(image)
-        image = equalize_hist(image)
+        # gray = cv2.cvtColor(X[i], cv2.COLOR_RGB2GRAY)
+        # blur = cv2.GaussianBlur(gray, (5,5), 20.0)
+        # image = cv2.addWeighted(gray, 2, blur, -1, 0)
+        # image = cv2.equalizeHist(image)
+        # image = equalize_hist(image)
+        image = imresize(X[i], (224, 224))
         t.append(image)
-    X = np.reshape(t, (-1, 64, 64, 1))
+    X = np.reshape(t, (-1, 224, 224, 3))
     print("Image Shape: {}".format(X.shape))
     return X
 
-print("Training data")
+
 # show raw image vs processed image
-X_original = X_train
-X_processed = preprocess(X_train)
-fig, axs = plt.subplots(1,2, figsize=(10, 3))
-axs = axs.ravel()
+# X_original = X_train
+# X_processed = preprocess(X_train)
+# fig, axs = plt.subplots(1,2, figsize=(10, 3))
+# axs = axs.ravel()
+#
+# axs[0].axis('off')
+# axs[0].set_title('Original')
+# axs[0].imshow(X_original[156].squeeze())
+#
+# axs[1].axis('off')
+# axs[1].set_title('Processed')
+# axs[1].imshow(X_processed[156].squeeze(), cmap='gray')
 
-axs[0].axis('off')
-axs[0].set_title('Original')
-axs[0].imshow(X_original[156].squeeze())
-
-axs[1].axis('off')
-axs[1].set_title('Processed')
-axs[1].imshow(X_processed[156].squeeze(), cmap='gray')
-
+print("Training data")
 X_train = preprocess(X_train)
 print("Validation data")
 X_valid = preprocess(X_valid)
 print("Test data")
 X_test = preprocess(X_test)
 X_train, y_train = shuffle(X_train, y_train)
-# plt.show()
 
 #=========BUILD ARCHITECTURE========
 #===================================
@@ -116,36 +118,136 @@ def LeNet(x):
     # Arguments used for tf.truncated_normal, randomly defines variables for the weights and biases for each layer
     mu = 0
     sigma = 0.1
+    # subtract mean values from image to normalize
+    mean = tf.constant([118.12, 130.803, 120.883], dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
+    x = x-mean
 
-    # Layer 1: Convolutional. Input = 64x64x1. Output = 60x60x6.
-    conv1_W = tf.Variable(tf.truncated_normal(shape=(5,5,1,6), mean = mu, stddev = sigma))
-    conv1_b = tf.Variable(tf.zeros(6))
-    conv1   = tf.nn.conv2d(x, conv1_W, strides = [1, 1, 1, 1], padding = 'VALID') + conv1_b
-    regularizers = tf.nn.l2_loss(conv1_W)
-
+    # 1) Layer 1-1: Convolutional. Input = 224x224x3. Output = 224x224x64.
+    conv1_1_W = tf.Variable(tf.truncated_normal(shape=(3,3,3,64), mean = mu, stddev = sigma))
+    conv1_1_b = tf.Variable(tf.zeros(64))
+    conv1_1   = tf.nn.conv2d(x, conv1_1_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv1_1_b
+    regularizers = tf.nn.l2_loss(conv1_1_W)
     # Activation.
-    conv1 = tf.nn.relu(conv1)
-    # Pooling. Input = 60x60x6. Output = 30x30x6.
-    conv1 = tf.nn.max_pool(conv1, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'VALID')
+    conv1_1 = tf.nn.relu(conv1_1)
 
-    # Layer 2: Convolutional. Output = 26x26x16.
-    conv2_W = tf.Variable(tf.truncated_normal(shape=(5, 5, 6, 16), mean = mu, stddev = sigma))
-    conv2_b = tf.Variable(tf.zeros(16))
-    conv2   = tf.nn.conv2d(conv1, conv2_W, strides = [1, 1, 1, 1], padding = 'VALID') + conv2_b
-    regularizers += tf.nn.l2_loss(conv2_W)
-
+    # 2) Layer 1-2: Convolutional. Input = 224x224x3. Output = 224x224x64.
+    conv1_2_W = tf.Variable(tf.truncated_normal(shape=(3,3,64,64), mean = mu, stddev = sigma))
+    conv1_2_b = tf.Variable(tf.zeros(64))
+    conv1_2   = tf.nn.conv2d(conv1_1, conv1_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv1_2_b
+    regularizers = tf.nn.l2_loss(conv1_2_W)
     # Activation.
-    conv2 = tf.nn.relu(conv2)
+    conv1_2 = tf.nn.relu(conv1_2)
 
-    # Pooling. Input = 26x26x16. Output = 13x13x16.
-    conv2 = tf.nn.max_pool(conv2, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'VALID')
+    # Pooling. Input = 224x224x64. Output = 112x112x64.
+    conv1_2 = tf.nn.max_pool(conv1_2, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
+
+    # 3) Layer 2-1: Convolutional. Output = 112x112x128.
+    conv2_1_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 64, 128), mean = mu, stddev = sigma))
+    conv2_1_b = tf.Variable(tf.zeros(128))
+    conv2_1   = tf.nn.conv2d(conv1_2, conv2_1_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv2_1_b
+    regularizers += tf.nn.l2_loss(conv2_1_W)
+    # Activation.
+    conv2_1 = tf.nn.relu(conv2_1)
+
+    # 4) Layer 2-2: Convolutional. Output = 112x112x128.
+    conv2_2_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 128, 128), mean = mu, stddev = sigma))
+    conv2_2_b = tf.Variable(tf.zeros(128))
+    conv2_2   = tf.nn.conv2d(conv2_1, conv2_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv2_2_b
+    regularizers += tf.nn.l2_loss(conv2_2_W)
+    # Activation.
+    conv2_2 = tf.nn.relu(conv2_2)
+
+    # Pooling. Input = 112x112x128. Output = 56x56x128.
+    conv2_2 = tf.nn.max_pool(conv2_2, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
+
+    # 5) Layer 3-1: Convolutional. Output = 56x56x256.
+    conv3_1_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 128, 256), mean = mu, stddev = sigma))
+    conv3_1_b = tf.Variable(tf.zeros(256))
+    conv3_1   = tf.nn.conv2d(conv2_2, conv3_1_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv3_1_b
+    regularizers += tf.nn.l2_loss(conv3_1_W)
+    # Activation.
+    conv3_1 = tf.nn.relu(conv3_1)
+
+    # 6) Layer 3-2: Convolutional. Output = 56x56x256.
+    conv3_2_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 256, 256), mean = mu, stddev = sigma))
+    conv3_2_b = tf.Variable(tf.zeros(256))
+    conv3_2   = tf.nn.conv2d(conv3_1, conv3_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv3_2_b
+    regularizers += tf.nn.l2_loss(conv3_2_W)
+    # Activation.
+    conv3_2 = tf.nn.relu(conv3_2)
+
+    # 7) Layer 3-3: Convolutional. Output = 56x56x256.
+    conv3_3_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 256, 256), mean = mu, stddev = sigma))
+    conv3_3_b = tf.Variable(tf.zeros(256))
+    conv3_3   = tf.nn.conv2d(conv3_2, conv3_3_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv3_3_b
+    regularizers += tf.nn.l2_loss(conv3_3_W)
+    # Activation.
+    conv3_3 = tf.nn.relu(conv3_3)
+
+    # Pooling. Input = 56x56x256. Output = 28x28x256.
+    conv3_3 = tf.nn.max_pool(conv3_3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
+
+    # 8) Layer 4-1: Convolutional. Output = 28x28x512.
+    conv4_1_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 256, 512), mean = mu, stddev = sigma))
+    conv4_1_b = tf.Variable(tf.zeros(512))
+    conv4_1   = tf.nn.conv2d(conv3_3, conv4_1_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv4_1_b
+    regularizers += tf.nn.l2_loss(conv4_1_W)
+    # Activation.
+    conv4_1 = tf.nn.relu(conv4_1)
+
+    # 9) Layer 4-2: Convolutional. Output = 28x28x512.
+    conv4_2_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 512, 512), mean = mu, stddev = sigma))
+    conv4_2_b = tf.Variable(tf.zeros(512))
+    conv4_2   = tf.nn.conv2d(conv4_1, conv4_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv4_2_b
+    regularizers += tf.nn.l2_loss(conv4_2_W)
+    # Activation.
+    conv4_2 = tf.nn.relu(conv4_2)
+
+    # 10) Layer 4-3: Convolutional. Output = 28x28x512.
+    conv4_3_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 512, 512), mean = mu, stddev = sigma))
+    conv4_3_b = tf.Variable(tf.zeros(512))
+    conv4_3   = tf.nn.conv2d(conv4_2, conv4_3_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv4_3_b
+    regularizers += tf.nn.l2_loss(conv4_3_W)
+    # Activation.
+    conv4_3 = tf.nn.relu(conv4_3)
+
+    # Pooling. Input = 28x28x512. Output = 14x14x512.
+    conv4_3 = tf.nn.max_pool(conv4_3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
+
+    # 11) Layer 5-1: Convolutional. Output = 14x14x512.
+    conv5_1_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 512, 512), mean = mu, stddev = sigma))
+    conv5_1_b = tf.Variable(tf.zeros(512))
+    conv5_1   = tf.nn.conv2d(conv4_3, conv5_1_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv5_1_b
+    regularizers += tf.nn.l2_loss(conv5_1_W)
+    # Activation.
+    conv5_1 = tf.nn.relu(conv5_1)
+
+    # 12) Layer 5-2: Convolutional. Output = 14x14x512.
+    conv5_2_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 512, 512), mean = mu, stddev = sigma))
+    conv5_2_b = tf.Variable(tf.zeros(512))
+    conv5_2   = tf.nn.conv2d(conv5_1, conv5_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv5_2_b
+    regularizers += tf.nn.l2_loss(conv5_2_W)
+    # Activation.
+    conv5_2 = tf.nn.relu(conv5_2)
+
+    # 13) Layer 5-2: Convolutional. Output = 14x14x512.
+    conv5_3_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 512, 512), mean = mu, stddev = sigma))
+    conv5_3_b = tf.Variable(tf.zeros(512))
+    conv5_3   = tf.nn.conv2d(conv5_2, conv5_3_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv5_3_b
+    regularizers += tf.nn.l2_loss(conv5_3_W)
+    # Activation.
+    conv5_3 = tf.nn.relu(conv5_3)
+
+    # Pooling. Input = 14x14x512. Output = 7x7x512.
+    conv5_3 = tf.nn.max_pool(conv5_3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
     # Flatten. Input = 13x13x16. Output = 2704.
-    fc0   = flatten(conv2)
+    fc0   = flatten(conv5_3)
+    shape = int(np.prod(conv5_3.get_shape()[1:])) #Test to see if this is the same as flatten
 
-    # Layer 3: Fully Connected. Input = 2704. Output = 800.
-    fc1_W = tf.Variable(tf.truncated_normal(shape=(2704, 800), mean = mu, stddev = sigma))
-    fc1_b = tf.Variable(tf.zeros(800))
+    # 14) Layer 6-1: Fully Connected. Input = 2704. Output = 800.
+    fc1_W = tf.Variable(tf.truncated_normal(shape=(shape, 4096), mean = mu, stddev = sigma))
+    fc1_b = tf.Variable(tf.zeros(4096))
     fc1   = tf.matmul(fc0, fc1_W) + fc1_b
     regularizers += tf.nn.l2_loss(fc1_W)
 
@@ -154,8 +256,8 @@ def LeNet(x):
     fc1   = tf.nn.dropout(fc1, keep_prob)
 
     # Layer 4: Fully Connected. Input = 800. Output = 500.
-    fc2_W = tf.Variable(tf.truncated_normal(shape=(800,500), mean = mu, stddev = sigma))
-    fc2_b = tf.Variable(tf.zeros(500))
+    fc2_W = tf.Variable(tf.truncated_normal(shape=(4096,4096), mean = mu, stddev = sigma))
+    fc2_b = tf.Variable(tf.zeros(4096))
     fc2   = tf.matmul(fc1, fc2_W) + fc2_b
     regularizers += tf.nn.l2_loss(fc2_W)
 
@@ -164,7 +266,7 @@ def LeNet(x):
     fc2   = tf.nn.dropout(fc2, keep_prob)
 
     # Layer 5: Fully Connected. Input = 500. Output = 120.
-    fc3_W  = tf.Variable(tf.truncated_normal(shape=(500,2), mean = mu, stddev = sigma))
+    fc3_W  = tf.Variable(tf.truncated_normal(shape=(4096,2), mean = mu, stddev = sigma))
     fc3_b  = tf.Variable(tf.zeros(2))
     regularizers += tf.nn.l2_loss(fc3_W)
     logits = tf.add(tf.matmul(fc2, fc3_W), fc3_b, "op_logits")
@@ -174,7 +276,7 @@ def LeNet(x):
 
 rate = 0.0008
 keep_prob = tf.placeholder(tf.float32, name="keep_prob") # probablity of keeping for dropout
-x = tf.placeholder(tf.float32, (None, 64, 64, 1), name="input_data")
+x = tf.placeholder(tf.float32, (None, 224, 224, 3), name="input_data")
 y = tf.placeholder(tf.int32, (None))
 one_hot_y = tf.one_hot(y, 2)
 

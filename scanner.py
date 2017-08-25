@@ -171,8 +171,8 @@ class Scanner():
 
         print("predicting {} images".format(len(images)))
         with tf.Session() as sess:
-            saver = tf.train.import_meta_graph('detection_net/model.meta')
-            saver.restore(sess, tf.train.latest_checkpoint('detection_net/.'))
+            saver = tf.train.import_meta_graph('test_net/model.meta')
+            saver.restore(sess, tf.train.latest_checkpoint('test_net/.'))
             graph = tf.get_default_graph()
 
             x = graph.get_tensor_by_name("input_data:0")
