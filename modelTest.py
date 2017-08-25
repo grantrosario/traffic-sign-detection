@@ -1,4 +1,3 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
@@ -299,7 +298,7 @@ def evaluate(X_data, y_data):
     num_examples = len(X_data)
     total_accuracy = 0
     sess = tf.get_default_session()
-    for offset in range(0, num_examples, BATCH_SIZE):
+    for offset in tqdm(range(0, num_examples, BATCH_SIZE)):
         batch_x, batch_y = X_data[offset:offset+BATCH_SIZE], y_data[offset:offset+BATCH_SIZE]
         accuracy = sess.run(accuracy_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 1.})
         total_accuracy += (accuracy * len(batch_x))
@@ -317,8 +316,8 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
         sess.run(tf.global_variables_initializer())
         num_examples = len(X_train)
 
-        print("Training...")
         print()
+        print("Training...")
         for i in range(EPOCHS):
             X_train, y_train = shuffle(X_train, y_train)
             for offset in tqdm(range(0, num_examples, BATCH_SIZE)):
@@ -326,6 +325,8 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
                 batch_x, batch_y = X_train[offset:end], y_train[offset:end]
                 sess.run(training_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 0.5})
 
+            print()
+            print("Evaluating accuracy...")
             validation_accuracy = evaluate(X_valid, y_valid)
             training_accuracy = evaluate(X_train, y_train)
             # test_accuracy = evaluate(X_test, y_test)
