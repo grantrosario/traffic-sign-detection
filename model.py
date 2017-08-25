@@ -109,8 +109,8 @@ X_train, y_train = shuffle(X_train, y_train)
 #=========BUILD ARCHITECTURE========
 #===================================
 ### Define architecture.
-EPOCHS = 20
-BATCH_SIZE = 64
+EPOCHS = 10
+BATCH_SIZE = 256
 beta = 0.001
 
 def LeNet(x):
