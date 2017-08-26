@@ -208,6 +208,6 @@ now = datetime.datetime.now()
 d = now.day
 m = now.minute
 s = now.second
-cv2.imwrite("outputImages/final_img_{}_{}_{}.jpg".format(d,m,s), window_img)
+cv2.imwrite("/outputImages/final_img_{}_{}_{}.jpg".format(d,m,s), window_img)
 # plt.imshow(window_img)
 # plt.show()
