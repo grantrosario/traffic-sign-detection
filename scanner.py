@@ -169,10 +169,8 @@ class Scanner():
             my_images.append(image)
 
         my_images = np.asarray(my_images)
-        my_images = np.reshape(my_images, (-1, 64, 64, 1))
+        my_images = np.reshape(my_images, (-1, 224, 224, 3))
         my_labels = [1]
-        in_img = tf.placeholder(tf.float32, (None, 64, 64, 1))
-        answer = tf.placeholder(tf.int64, (None,))
 
         print("predicting {} images...".format(len(images)))
         with tf.Session() as sess:
