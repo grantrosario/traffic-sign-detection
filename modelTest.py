@@ -130,7 +130,7 @@ def LeNet(x):
     # Activation.
     conv1_1 = tf.nn.relu(conv1_1)
 
-    # 2) Layer 1-2: Convolutional. Input = 224x224x3. Output = 224x224x64.
+    # 2) Layer 1-2: Convolutional. Input = 224x224x64. Output = 224x224x64.
     conv1_2_W = tf.Variable(tf.truncated_normal(shape=(3,3,64,64), mean = mu, stddev = sigma))
     conv1_2_b = tf.Variable(tf.zeros(64))
     conv1_2   = tf.nn.conv2d(conv1_1, conv1_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv1_2_b
@@ -241,7 +241,7 @@ def LeNet(x):
     # Pooling. Input = 14x14x512. Output = 7x7x512.
     conv5_3 = tf.nn.max_pool(conv5_3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
-    # Flatten. Input = 13x13x16. Output = 2704.
+    # Flatten. Input = 7x7x512. Output = 2704.
     fc0   = flatten(conv5_3)
     shape = int(np.prod(conv5_3.get_shape()[1:])) #Test to see if this is the same as flatten
 
@@ -319,6 +319,7 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
         print()
         print("Training...")
         for i in range(EPOCHS):
+            print("EPOCH {} ...".format(i+1))
             X_train, y_train = shuffle(X_train, y_train)
             for offset in tqdm(range(0, num_examples, BATCH_SIZE)):
                 end = offset + BATCH_SIZE
@@ -326,11 +327,11 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
                 sess.run(training_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 0.5})
 
             print()
-            print("Evaluating accuracy...")
+            print("Evaluating validation accuracy...")
             validation_accuracy = evaluate(X_valid, y_valid)
+            print("Evaluating training accuracy...")
             training_accuracy = evaluate(X_train, y_train)
             # test_accuracy = evaluate(X_test, y_test)
-            print("EPOCH {} ...".format(i+1))
             print("Validation Accuracy = {:.3f}".format(validation_accuracy))
             print("Training Accuracy = {:.3f}".format(training_accuracy))
             # print("Test Accuracy = {:.3f}".format(test_accuracy))

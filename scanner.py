@@ -152,29 +152,34 @@ class Scanner():
     def predict(self, images):
 
         my_images = []
+        r_values = []
+        g_values = []
+        b_values = []
 
         for image in images:
             new_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            gray = cv2.cvtColor(new_image, cv2.COLOR_RGB2GRAY)
-            blur = cv2.GaussianBlur(gray, (5,5), 20.0)
-            image = cv2.addWeighted(gray, 2, blur, -1, 0)
-            image = cv2.equalizeHist(image)
-            image = equalize_hist(image)
-            sized = cv2.resize(image, (64,64))
-            my_images.append(sized)
-
+            image = cv2.resize(image, (224,224))
+            for c in range(3):
+                image[:,:,c] = image[:,:,c] - np.mean(image[:,:,c])
+            # gray = cv2.cvtColor(new_image, cv2.COLOR_RGB2GRAY)
+            # blur = cv2.GaussianBlur(gray, (5,5), 20.0)
+            # image = cv2.addWeighted(gray, 2, blur, -1, 0)
+            # image = cv2.equalizeHist(image)
+            # image = equalize_hist(image)
+            my_images.append(image)
+            
         my_images = np.asarray(my_images)
         my_images = np.reshape(my_images, (-1, 64, 64, 1))
         my_labels = [1]
         in_img = tf.placeholder(tf.float32, (None, 64, 64, 1))
         answer = tf.placeholder(tf.int64, (None,))
 
-        print("predicting {} images".format(len(images)))
+        print("predicting {} images...".format(len(images)))
         with tf.Session() as sess:
-            saver = tf.train.import_meta_graph('test_net/model.meta')
-            saver.restore(sess, tf.train.latest_checkpoint('test_net/.'))
+            saver = tf.train.import_meta_graph('detection_net/model.meta')
+            saver.restore(sess, tf.train.latest_checkpoint('detection_net/.'))
             graph = tf.get_default_graph()
-
+            print("Model restored...")
             x = graph.get_tensor_by_name("input_data:0")
             keep_prob = graph.get_tensor_by_name("keep_prob:0")
             prediction = graph.get_tensor_by_name("prediction:0")
