@@ -5,6 +5,7 @@ import matplotlib.image as mpimg
 import glob
 import random
 import time
+import datetime
 from collections import deque
 from skimage.feature import hog
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -201,7 +202,8 @@ class Scanner():
 
 scan = Scanner()
 img = imread("test_imgs/test1.jpg")
-windows = scan.slide_window(img, x_start_stop=[200, 3800], y_start_stop=[500, 2300], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
+windows = scan.slide_window(img, x_start_stop=[200, 3800], y_start_stop=[500, 2300], xy_window=(512, 512), xy_overlap=(0.5, 0.5))
 window_img = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
-plt.imshow(window_img)
-plt.show()
+imsave("outputImages/final_img_{}".format(datetime.datetime.now()), window_img)
+# plt.imshow(window_img)
+# plt.show()
