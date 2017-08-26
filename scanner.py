@@ -204,6 +204,10 @@ scan = Scanner()
 img = imread("test_imgs/test1.jpg")
 windows = scan.slide_window(img, x_start_stop=[200, 3800], y_start_stop=[500, 2300], xy_window=(512, 512), xy_overlap=(0.5, 0.5))
 window_img = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
-imsave("outputImages/final_img_{}.jpg".format(datetime.datetime.now()), window_img)
+now = datetime.datetime.now()
+d = now.day
+m = now.minute
+s = now.second
+imsave("outputImages/final_img_{}_{}_{}.jpg".format(d,m,s), window_img)
 # plt.imshow(window_img)
 # plt.show()
