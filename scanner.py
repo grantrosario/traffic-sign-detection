@@ -9,11 +9,12 @@ import datetime
 from collections import deque
 from skimage.feature import hog
 from sklearn.model_selection import train_test_split, GridSearchCV
-from scipy.misc import imread, imsave, imresize
+from scipy.misc import imread, imresize
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
 from scipy.ndimage.measurements import label
 from skimage.exposure import equalize_hist
+from skimage.io import imsave
 
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
@@ -208,6 +209,6 @@ now = datetime.datetime.now()
 d = now.day
 m = now.minute
 s = now.second
-cv2.imwrite("/outputImages/final_img_{}_{}_{}.jpg".format(d,m,s), window_img)
+imsave("/outputImages/final_img_{}_{}_{}.jpg".format(d,m,s), window_img)
 # plt.imshow(window_img)
 # plt.show()
