@@ -167,7 +167,7 @@ class Scanner():
             # image = cv2.equalizeHist(image)
             # image = equalize_hist(image)
             my_images.append(image)
-            
+
         my_images = np.asarray(my_images)
         my_images = np.reshape(my_images, (-1, 64, 64, 1))
         my_labels = [1]
@@ -176,8 +176,8 @@ class Scanner():
 
         print("predicting {} images...".format(len(images)))
         with tf.Session() as sess:
-            saver = tf.train.import_meta_graph('detection_net/model.meta')
-            saver.restore(sess, tf.train.latest_checkpoint('detection_net/.'))
+            saver = tf.train.import_meta_graph('test_net/model.meta')
+            saver.restore(sess, tf.train.latest_checkpoint('test_net/.'))
             graph = tf.get_default_graph()
             print("Model restored...")
             x = graph.get_tensor_by_name("input_data:0")
