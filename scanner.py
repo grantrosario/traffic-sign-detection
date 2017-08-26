@@ -152,9 +152,6 @@ class Scanner():
     def predict(self, images):
 
         my_images = []
-        r_values = []
-        g_values = []
-        b_values = []
 
         for image in images:
             new_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -179,12 +176,17 @@ class Scanner():
             graph = tf.get_default_graph()
             print("Model restored...")
             x = graph.get_tensor_by_name("input_data:0")
+            print("x restored...")
             keep_prob = graph.get_tensor_by_name("keep_prob:0")
+            print("keep_prob...")
             prediction = graph.get_tensor_by_name("prediction:0")
+            print("prediction op restored...")
 
 
             sess.run(prediction, feed_dict={x: my_images, keep_prob: 1.})
+            print("prediction op finished...")
             predictions = (prediction.eval(feed_dict={x: my_images, keep_prob: 1.}))
+            print("predictions assigned...")
         print("DONE PREDICTING")
         return predictions
 
