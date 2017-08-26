@@ -203,7 +203,7 @@ class Scanner():
 
 scan = Scanner()
 img = imread("test_imgs/test1.jpg")
-windows = scan.slide_window(img, x_start_stop=[200, 3800], y_start_stop=[500, 2300], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
+windows = scan.slide_window(img, x_start_stop=[200, 3800], y_start_stop=[500, 2300], xy_window=(256, 256), xy_overlap=(0.5, 0.5))
 window_img = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
 now = datetime.datetime.now()
 d = now.day
