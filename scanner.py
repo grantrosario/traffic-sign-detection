@@ -157,7 +157,7 @@ class Scanner():
 
         for image in images:
             new_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            image = cv2.resize(image, (224,224))
+            image = cv2.resize(image, (128,128))
             for c in range(3):
                 image[:,:,c] = image[:,:,c] - np.mean(image[:,:,c])
             # gray = cv2.cvtColor(new_image, cv2.COLOR_RGB2GRAY)
@@ -168,7 +168,7 @@ class Scanner():
             my_images.append(image)
 
         my_images = np.asarray(my_images)
-        my_images = np.reshape(my_images, (-1, 224, 224, 3))
+        my_images = np.reshape(my_images, (-1, 128, 128, 3))
         my_labels = [1]
 
         print("predicting {} images...".format(len(images)))
@@ -203,7 +203,7 @@ class Scanner():
 
 scan = Scanner()
 img = imread("test_imgs/test1.jpg")
-windows = scan.slide_window(img, x_start_stop=[200, 3800], y_start_stop=[500, 2300], xy_window=(512, 512), xy_overlap=(0.5, 0.5))
+windows = scan.slide_window(img, x_start_stop=[200, 3800], y_start_stop=[500, 2300], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
 window_img = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
 now = datetime.datetime.now()
 d = now.day
