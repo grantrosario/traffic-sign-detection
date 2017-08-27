@@ -82,7 +82,7 @@ def preprocess(X):
         image = equalize_hist(image)
         image = imresize(image, (IMG_SIZE, IMG_SIZE))
         t.append(image)
-    X = np.reshape(t, (-1, IMG_SIZE, IMG_SIZE, 3))
+    X = np.reshape(t, (-1, IMG_SIZE, IMG_SIZE, IMG_CHANNEL))
     print("Image Shape: {}".format(X.shape))
     return X
 
