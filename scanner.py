@@ -211,6 +211,6 @@ now = datetime.datetime.now()
 d = now.day
 m = now.minute
 s = now.second
-imsave("/outputImages/final_img_{}_{}_{}.jpg".format(d,m,s), window_img)
+imsave("final_img_{}_{}_{}.jpg".format(d,m,s), window_img)
 # plt.imshow(window_img)
 # plt.show()
