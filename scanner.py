@@ -20,6 +20,8 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
 
+IMG_SIZE = 96
+
 
 class Scanner():
 
@@ -157,7 +159,7 @@ class Scanner():
 
         for image in images:
             new_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            image = cv2.resize(image, (128,128))
+            image = cv2.resize(image, (IMG_SIZE,IMG_SIZE))
             for c in range(3):
                 image[:,:,c] = image[:,:,c] - np.mean(image[:,:,c])
             # gray = cv2.cvtColor(new_image, cv2.COLOR_RGB2GRAY)
@@ -168,7 +170,7 @@ class Scanner():
             my_images.append(image)
 
         my_images = np.asarray(my_images)
-        my_images = np.reshape(my_images, (-1, 128, 128, 3))
+        my_images = np.reshape(my_images, (-1, IMG_SIZE, IMG_SIZE, 3))
         my_labels = [1]
 
         print("predicting {} images...".format(len(images)))

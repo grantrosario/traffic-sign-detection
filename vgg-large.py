@@ -12,6 +12,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
 
+IMG_SIZE = 96
 data_file = "detection_data.p"
 
 with open(data_file, mode='rb') as f:
@@ -78,9 +79,9 @@ def preprocess(X):
         # image = cv2.addWeighted(gray, 2, blur, -1, 0)
         # image = cv2.equalizeHist(image)
         # image = equalize_hist(image)
-        image = imresize(X[i], (128, 128))
+        image = imresize(X[i], (IMG_SIZE, IMG_SIZE))
         t.append(image)
-    X = np.reshape(t, (-1, 128, 128, 3))
+    X = np.reshape(t, (-1, IMG_SIZE, IMG_SIZE, 3))
     print("Image Shape: {}".format(X.shape))
     return X
 
@@ -122,7 +123,7 @@ def LeNet(x):
     mean = tf.constant([118.32, 130.99, 120.08], dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
     x = x-mean
 
-    # 1) Layer 1-1: Convolutional. Input = 128x128x3. Output = 128x128x64.
+    # 1) Layer 1-1: Convolutional. Input = 96x96x3. Output = 96x96x64.
     conv1_1_W = tf.Variable(tf.truncated_normal(shape=(3,3,3,64), mean = mu, stddev = sigma))
     conv1_1_b = tf.Variable(tf.zeros(64))
     conv1_1   = tf.nn.conv2d(x, conv1_1_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv1_1_b
@@ -130,7 +131,7 @@ def LeNet(x):
     # Activation.
     conv1_1 = tf.nn.relu(conv1_1)
 
-    # 2) Layer 1-2: Convolutional. Input = 128x128x64. Output = 128x128x64.
+    # 2) Layer 1-2: Convolutional. Input = 96x96x64. Output = 96x96x64.
     conv1_2_W = tf.Variable(tf.truncated_normal(shape=(3,3,64,64), mean = mu, stddev = sigma))
     conv1_2_b = tf.Variable(tf.zeros(64))
     conv1_2   = tf.nn.conv2d(conv1_1, conv1_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv1_2_b
@@ -138,10 +139,10 @@ def LeNet(x):
     # Activation.
     conv1_2 = tf.nn.relu(conv1_2)
 
-    # Pooling. Input = 128x128x64. Output = 64x64x64.
+    # Pooling. Input = 96x96x64. Output = 48x48x64.
     conv1_2 = tf.nn.max_pool(conv1_2, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
-    # 3) Layer 2-1: Convolutional. Output = 64x64x128.
+    # 3) Layer 2-1: Convolutional. Output = 48x48x128.
     conv2_1_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 64, 128), mean = mu, stddev = sigma))
     conv2_1_b = tf.Variable(tf.zeros(128))
     conv2_1   = tf.nn.conv2d(conv1_2, conv2_1_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv2_1_b
@@ -149,7 +150,7 @@ def LeNet(x):
     # Activation.
     conv2_1 = tf.nn.relu(conv2_1)
 
-    # 4) Layer 2-2: Convolutional. Output = 64x64x128.
+    # 4) Layer 2-2: Convolutional. Output = 48x48x128.
     conv2_2_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 128, 128), mean = mu, stddev = sigma))
     conv2_2_b = tf.Variable(tf.zeros(128))
     conv2_2   = tf.nn.conv2d(conv2_1, conv2_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv2_2_b
@@ -157,10 +158,10 @@ def LeNet(x):
     # Activation.
     conv2_2 = tf.nn.relu(conv2_2)
 
-    # Pooling. Input = 64x64x128. Output = 32x32x128.
+    # Pooling. Input = 48x48x128. Output = 24x24x128.
     conv2_2 = tf.nn.max_pool(conv2_2, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
-    # 5) Layer 3-1: Convolutional. Output = 32x32x256.
+    # 5) Layer 3-1: Convolutional. Output = 24x24x256.
     conv3_1_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 128, 256), mean = mu, stddev = sigma))
     conv3_1_b = tf.Variable(tf.zeros(256))
     conv3_1   = tf.nn.conv2d(conv2_2, conv3_1_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv3_1_b
@@ -168,7 +169,7 @@ def LeNet(x):
     # Activation.
     conv3_1 = tf.nn.relu(conv3_1)
 
-    # 6) Layer 3-2: Convolutional. Output = 32x32x256.
+    # 6) Layer 3-2: Convolutional. Output = 24x24x256.
     conv3_2_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 256, 256), mean = mu, stddev = sigma))
     conv3_2_b = tf.Variable(tf.zeros(256))
     conv3_2   = tf.nn.conv2d(conv3_1, conv3_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv3_2_b
@@ -176,7 +177,7 @@ def LeNet(x):
     # Activation.
     conv3_2 = tf.nn.relu(conv3_2)
 
-    # 7) Layer 3-3: Convolutional. Output = 32x32x256.
+    # 7) Layer 3-3: Convolutional. Output = 24x24x256.
     conv3_3_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 256, 256), mean = mu, stddev = sigma))
     conv3_3_b = tf.Variable(tf.zeros(256))
     conv3_3   = tf.nn.conv2d(conv3_2, conv3_3_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv3_3_b
@@ -184,10 +185,10 @@ def LeNet(x):
     # Activation.
     conv3_3 = tf.nn.relu(conv3_3)
 
-    # Pooling. Input = 32x32x256. Output = 16x16x256.
+    # Pooling. Input = 24x24x256. Output = 12x12x256.
     conv3_3 = tf.nn.max_pool(conv3_3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
-    # 8) Layer 4-1: Convolutional. Output = 16x16x512.
+    # 8) Layer 4-1: Convolutional. Output = 12x12x512.
     conv4_1_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 256, 512), mean = mu, stddev = sigma))
     conv4_1_b = tf.Variable(tf.zeros(512))
     conv4_1   = tf.nn.conv2d(conv3_3, conv4_1_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv4_1_b
@@ -195,7 +196,7 @@ def LeNet(x):
     # Activation.
     conv4_1 = tf.nn.relu(conv4_1)
 
-    # 9) Layer 4-2: Convolutional. Output = 16x16x512.
+    # 9) Layer 4-2: Convolutional. Output = 12x12x512.
     conv4_2_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 512, 512), mean = mu, stddev = sigma))
     conv4_2_b = tf.Variable(tf.zeros(512))
     conv4_2   = tf.nn.conv2d(conv4_1, conv4_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv4_2_b
@@ -203,7 +204,7 @@ def LeNet(x):
     # Activation.
     conv4_2 = tf.nn.relu(conv4_2)
 
-    # 10) Layer 4-3: Convolutional. Output = 16x16x512.
+    # 10) Layer 4-3: Convolutional. Output = 12x12x512.
     conv4_3_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 512, 512), mean = mu, stddev = sigma))
     conv4_3_b = tf.Variable(tf.zeros(512))
     conv4_3   = tf.nn.conv2d(conv4_2, conv4_3_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv4_3_b
@@ -211,10 +212,10 @@ def LeNet(x):
     # Activation.
     conv4_3 = tf.nn.relu(conv4_3)
 
-    # Pooling. Input = 16x16x512. Output = 8x8x512.
+    # Pooling. Input = 12x12x512. Output = 6x6x512.
     conv4_3 = tf.nn.max_pool(conv4_3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
-    # 11) Layer 5-1: Convolutional. Output = 8x8x512.
+    # 11) Layer 5-1: Convolutional. Output = 6x6x512.
     conv5_1_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 512, 512), mean = mu, stddev = sigma))
     conv5_1_b = tf.Variable(tf.zeros(512))
     conv5_1   = tf.nn.conv2d(conv4_3, conv5_1_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv5_1_b
@@ -222,7 +223,7 @@ def LeNet(x):
     # Activation.
     conv5_1 = tf.nn.relu(conv5_1)
 
-    # 12) Layer 5-2: Convolutional. Output = 8x8x512.
+    # 12) Layer 5-2: Convolutional. Output = 6x6x512.
     conv5_2_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 512, 512), mean = mu, stddev = sigma))
     conv5_2_b = tf.Variable(tf.zeros(512))
     conv5_2   = tf.nn.conv2d(conv5_1, conv5_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv5_2_b
@@ -230,7 +231,7 @@ def LeNet(x):
     # Activation.
     conv5_2 = tf.nn.relu(conv5_2)
 
-    # 13) Layer 5-2: Convolutional. Output = 8x8x512.
+    # 13) Layer 5-2: Convolutional. Output = 6x6x512.
     conv5_3_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 512, 512), mean = mu, stddev = sigma))
     conv5_3_b = tf.Variable(tf.zeros(512))
     conv5_3   = tf.nn.conv2d(conv5_2, conv5_3_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv5_3_b
@@ -238,14 +239,14 @@ def LeNet(x):
     # Activation.
     conv5_3 = tf.nn.relu(conv5_3)
 
-    # Pooling. Input = 8x8x512. Output = 4x4x512.
+    # Pooling. Input = 6x6x512. Output = 3x3x512.
     conv5_3 = tf.nn.max_pool(conv5_3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
-    # Flatten. Input = 4x4x512. Output = 8192.
+    # Flatten. Input = 3x3x512. Output = 4608.
     fc0   = flatten(conv5_3)
     shape = int(np.prod(conv5_3.get_shape()[1:])) #Test to see if this is the same as flatten
 
-    # 14) Layer 6-1: Fully Connected. Input = 8192. Output = 4096.
+    # 14) Layer 6-1: Fully Connected. Input = 4608. Output = 1000.
     fc1_W = tf.Variable(tf.truncated_normal(shape=(shape, 1000), mean = mu, stddev = sigma))
     fc1_b = tf.Variable(tf.zeros(1000))
     fc1   = tf.matmul(fc0, fc1_W) + fc1_b
@@ -255,7 +256,7 @@ def LeNet(x):
     fc1   = tf.nn.relu(fc1)
     fc1   = tf.nn.dropout(fc1, keep_prob)
 
-    # Layer 4: Fully Connected. Input = 800. Output = 500.
+    # Layer 4: Fully Connected. Input = 1000. Output = 1000.
     fc2_W = tf.Variable(tf.truncated_normal(shape=(1000,1000), mean = mu, stddev = sigma))
     fc2_b = tf.Variable(tf.zeros(1000))
     fc2   = tf.matmul(fc1, fc2_W) + fc2_b
@@ -265,7 +266,7 @@ def LeNet(x):
     fc2   = tf.nn.relu(fc2)
     fc2   = tf.nn.dropout(fc2, keep_prob)
 
-    # Layer 5: Fully Connected. Input = 500. Output = 120.
+    # Layer 5: Fully Connected. Input = 1000. Output = 2.
     fc3_W  = tf.Variable(tf.truncated_normal(shape=(1000,2), mean = mu, stddev = sigma))
     fc3_b  = tf.Variable(tf.zeros(2))
     regularizers += tf.nn.l2_loss(fc3_W)
@@ -276,7 +277,7 @@ def LeNet(x):
 
 rate = 0.0008
 keep_prob = tf.placeholder(tf.float32, name="keep_prob") # probablity of keeping for dropout
-x = tf.placeholder(tf.float32, (None, 128, 128, 3), name="input_data")
+x = tf.placeholder(tf.float32, (None, 96, 96, 3), name="input_data")
 y = tf.placeholder(tf.int32, (None))
 one_hot_y = tf.one_hot(y, 2)
 
