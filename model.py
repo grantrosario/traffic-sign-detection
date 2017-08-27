@@ -86,18 +86,18 @@ def preprocess(X):
 
 print("Training data")
 # show raw image vs processed image
-X_original = X_train
-X_processed = preprocess(X_train)
-fig, axs = plt.subplots(1,2, figsize=(10, 3))
-axs = axs.ravel()
-
-axs[0].axis('off')
-axs[0].set_title('Original')
-axs[0].imshow(X_original[156].squeeze())
-
-axs[1].axis('off')
-axs[1].set_title('Processed')
-axs[1].imshow(X_processed[156].squeeze(), cmap='gray')
+# X_original = X_train
+# X_processed = preprocess(X_train)
+# fig, axs = plt.subplots(1,2, figsize=(10, 3))
+# axs = axs.ravel()
+#
+# axs[0].axis('off')
+# axs[0].set_title('Original')
+# axs[0].imshow(X_original[156].squeeze())
+#
+# axs[1].axis('off')
+# axs[1].set_title('Processed')
+# axs[1].imshow(X_processed[156].squeeze(), cmap='gray')
 
 X_train = preprocess(X_train)
 print("Validation data")
