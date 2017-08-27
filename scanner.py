@@ -20,7 +20,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
 
-IMG_SIZE = 96
+IMG_SIZE = 64
 
 
 class Scanner():

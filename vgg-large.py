@@ -12,7 +12,7 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
 
-IMG_SIZE = 96
+IMG_SIZE = 64
 data_file = "detection_data.p"
 
 with open(data_file, mode='rb') as f:
@@ -123,7 +123,7 @@ def LeNet(x):
     mean = tf.constant([118.32, 130.99, 120.08], dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
     x = x-mean
 
-    # 1) Layer 1-1: Convolutional. Input = 96x96x3. Output = 96x96x64.
+    # 1) Layer 1-1: Convolutional. Input = 64x64x3. Output = 64x64x64.
     conv1_1_W = tf.Variable(tf.truncated_normal(shape=(3,3,3,64), mean = mu, stddev = sigma))
     conv1_1_b = tf.Variable(tf.zeros(64))
     conv1_1   = tf.nn.conv2d(x, conv1_1_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv1_1_b
@@ -139,7 +139,7 @@ def LeNet(x):
     # Activation.
     conv1_2 = tf.nn.relu(conv1_2)
 
-    # Pooling. Input = 96x96x64. Output = 48x48x64.
+    # Pooling. Input = 96x96x64. Output = 32x32x64.
     conv1_2 = tf.nn.max_pool(conv1_2, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
     # 3) Layer 2-1: Convolutional. Output = 48x48x128.
@@ -158,7 +158,7 @@ def LeNet(x):
     # Activation.
     conv2_2 = tf.nn.relu(conv2_2)
 
-    # Pooling. Input = 48x48x128. Output = 24x24x128.
+    # Pooling. Input = 48x48x128. Output = 16x16x128.
     conv2_2 = tf.nn.max_pool(conv2_2, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
     # 5) Layer 3-1: Convolutional. Output = 24x24x256.
@@ -185,7 +185,7 @@ def LeNet(x):
     # Activation.
     conv3_3 = tf.nn.relu(conv3_3)
 
-    # Pooling. Input = 24x24x256. Output = 12x12x256.
+    # Pooling. Input = 24x24x256. Output = 8x8x256.
     conv3_3 = tf.nn.max_pool(conv3_3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
     # 8) Layer 4-1: Convolutional. Output = 12x12x512.
@@ -212,7 +212,7 @@ def LeNet(x):
     # Activation.
     conv4_3 = tf.nn.relu(conv4_3)
 
-    # Pooling. Input = 12x12x512. Output = 6x6x512.
+    # Pooling. Input = 12x12x512. Output = 4x4x512.
     conv4_3 = tf.nn.max_pool(conv4_3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
     # 11) Layer 5-1: Convolutional. Output = 6x6x512.
@@ -239,7 +239,7 @@ def LeNet(x):
     # Activation.
     conv5_3 = tf.nn.relu(conv5_3)
 
-    # Pooling. Input = 6x6x512. Output = 3x3x512.
+    # Pooling. Input = 6x6x512. Output = 2x2x512.
     conv5_3 = tf.nn.max_pool(conv5_3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
     # Flatten. Input = 3x3x512. Output = 4608.
@@ -277,7 +277,7 @@ def LeNet(x):
 
 rate = 0.0008
 keep_prob = tf.placeholder(tf.float32, name="keep_prob") # probablity of keeping for dropout
-x = tf.placeholder(tf.float32, (None, 96, 96, 3), name="input_data")
+x = tf.placeholder(tf.float32, (None, IMG_SIZE, IMG_SIZE, 3), name="input_data")
 y = tf.placeholder(tf.int32, (None))
 one_hot_y = tf.one_hot(y, 2)
 
@@ -341,12 +341,12 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
         saver.save(sess, './test_net/model')
         print("Model saved")
 
-#==============TESTING==============
-#===================================
-# TEST MODEL ACCURACY
-with tf.Session() as sess:
-    sess.run(tf.global_variables_initializer())
-    saver2 = tf.train.import_meta_graph('./test_net/model.meta')
-    saver2.restore(sess, "./test_net/model")
-    test_accuracy = evaluate(X_test, y_test)
-    print("Test Set Accuracy = {:.3f}".format(test_accuracy))
+    #==============TESTING==============
+    #===================================
+    # TEST MODEL ACCURACY
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+        saver2 = tf.train.import_meta_graph('./test_net/model.meta')
+        saver2.restore(sess, "./test_net/model")
+        test_accuracy = evaluate(X_test, y_test)
+        print("Test Set Accuracy = {:.3f}".format(test_accuracy))
