@@ -170,7 +170,7 @@ class Scanner():
             my_images.append(image)
 
         my_images = np.asarray(my_images)
-        my_images = np.reshape(my_images, (-1, IMG_SIZE, IMG_SIZE, 3))
+        my_images = np.reshape(my_images, (-1, IMG_SIZE, IMG_SIZE, 1))
         my_labels = [1]
 
         print("predicting {} images...".format(len(images)))
