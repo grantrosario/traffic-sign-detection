@@ -13,7 +13,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
 
 IMG_SIZE = 64
-IMG_CHANNEL = 3
+IMG_CHANNEL = 1
 data_file = "detection_data.p"
 
 with open(data_file, mode='rb') as f:
@@ -75,12 +75,12 @@ print("Number of classes =", n_classes)
 def preprocess(X):
     t = []
     for i in range(0, len(X)):
-        # gray = cv2.cvtColor(X[i], cv2.COLOR_RGB2GRAY)
-        # blur = cv2.GaussianBlur(gray, (5,5), 20.0)
-        # image = cv2.addWeighted(gray, 2, blur, -1, 0)
-        # image = cv2.equalizeHist(image)
-        # image = equalize_hist(image)
-        image = imresize(X[i], (IMG_SIZE, IMG_SIZE))
+        gray = cv2.cvtColor(X[i], cv2.COLOR_RGB2GRAY)
+        blur = cv2.GaussianBlur(gray, (5,5), 20.0)
+        image = cv2.addWeighted(gray, 2, blur, -1, 0)
+        image = cv2.equalizeHist(image)
+        image = equalize_hist(image)
+        image = imresize(image, (IMG_SIZE, IMG_SIZE))
         t.append(image)
     X = np.reshape(t, (-1, IMG_SIZE, IMG_SIZE, 3))
     print("Image Shape: {}".format(X.shape))
@@ -122,8 +122,8 @@ def LeNet(x):
     sigma = 0.1
 
     # subtract mean values from image to normalize
-    mean = tf.constant([118.32, 130.99, 120.08], dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
-    x = x-mean
+    # mean = tf.constant([118.32, 130.99, 120.08], dtype=tf.float32, shape=[1, 1, 1, 3], name='img_mean')
+    # x = x-mean
 
     # 1) Layer 1-1: Convolutional. Input = 64x64x3. Output = 64x64x8.
     conv1_1_W = tf.Variable(tf.truncated_normal(shape=(3,3,IMG_CHANNEL,8), mean = mu, stddev = sigma))

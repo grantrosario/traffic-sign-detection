@@ -88,7 +88,7 @@ class Scanner():
 
         predictions = self.predict(images)
         for num in range(len(predictions)):
-            if(predictions[num] == 0):
+            if(predictions[num] == 1):
                 cv2.rectangle(imcopy, bboxes[num][0], bboxes[num][1], color, thick)
 
                 # Locate box in black image which corresponds to predicted sign in original image
