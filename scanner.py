@@ -160,13 +160,13 @@ class Scanner():
         for image in images:
             new_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             image = cv2.resize(image, (IMG_SIZE,IMG_SIZE))
-            for c in range(3):
-                image[:,:,c] = image[:,:,c] - np.mean(image[:,:,c])
-            # gray = cv2.cvtColor(new_image, cv2.COLOR_RGB2GRAY)
-            # blur = cv2.GaussianBlur(gray, (5,5), 20.0)
-            # image = cv2.addWeighted(gray, 2, blur, -1, 0)
-            # image = cv2.equalizeHist(image)
-            # image = equalize_hist(image)
+            # for c in range(3):
+            #     image[:,:,c] = image[:,:,c] - np.mean(image[:,:,c])
+            gray = cv2.cvtColor(new_image, cv2.COLOR_RGB2GRAY)
+            blur = cv2.GaussianBlur(gray, (5,5), 20.0)
+            image = cv2.addWeighted(gray, 2, blur, -1, 0)
+            image = cv2.equalizeHist(image)
+            image = equalize_hist(image)
             my_images.append(image)
 
         my_images = np.asarray(my_images)
