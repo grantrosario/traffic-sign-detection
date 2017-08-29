@@ -119,36 +119,36 @@ def LeNet(x):
     mu = 0
     sigma = 0.1
 
-    # TODO: Layer 1: Convolutional. Input = 32x32x1. Output = 28x28x6.
+    # TODO: Layer 1: Convolutional. Input = 64x64x1. Output = 64x64x6.
     conv1_W = tf.Variable(tf.truncated_normal(shape=(5,5,1,6), mean = mu, stddev = sigma))
     conv1_b = tf.Variable(tf.zeros(6))
-    conv1   = tf.nn.conv2d(x, conv1_W, strides = [1, 1, 1, 1], padding = 'VALID') + conv1_b
+    conv1   = tf.nn.conv2d(x, conv1_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv1_b
     regularizers = tf.nn.l2_loss(conv1_W)
 
     # TODO: Activation.
     conv1 = tf.nn.relu(conv1)
 
-    # TODO: Pooling. Input = 28x28x6. Output = 14x14x6.
-    conv1 = tf.nn.max_pool(conv1, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'VALID')
+    # TODO: Pooling. Input = 64x64x6. Output = 32x32x6.
+    conv1 = tf.nn.max_pool(conv1, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
-    # TODO: Layer 2: Convolutional. Output = 10x10x16.
+    # TODO: Layer 2: Convolutional. Output = 32x32x16.
     conv2_W = tf.Variable(tf.truncated_normal(shape=(5, 5, 6, 16), mean = mu, stddev = sigma))
     conv2_b = tf.Variable(tf.zeros(16))
-    conv2   = tf.nn.conv2d(conv1, conv2_W, strides = [1, 1, 1, 1], padding = 'VALID') + conv2_b
+    conv2   = tf.nn.conv2d(conv1, conv2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv2_b
     regularizers += tf.nn.l2_loss(conv2_W)
 
     # TODO: Activation.
     conv2 = tf.nn.relu(conv2)
 
-    # TODO: Pooling. Input = 10x10x16. Output = 5x5x16.
-    conv2 = tf.nn.max_pool(conv2, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'VALID')
+    # TODO: Pooling. Input = 32x32x16. Output = 16x16x16.
+    conv2 = tf.nn.max_pool(conv2, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
-    # TODO: Flatten. Input = 5x5x16. Output = 400.
+    # TODO: Flatten. Input = 16x16x16. Output = 4096.
     fc0   = flatten(conv2)
 
-    # TODO: Layer 3: Fully Connected. Input = 400. Output = 120.
-    fc1_W = tf.Variable(tf.truncated_normal(shape=(2704, 1000), mean = mu, stddev = sigma))
-    fc1_b = tf.Variable(tf.zeros(1000))
+    # TODO: Layer 3: Fully Connected. Input = 4096. Output = 120.
+    fc1_W = tf.Variable(tf.truncated_normal(shape=(4096, 4096), mean = mu, stddev = sigma))
+    fc1_b = tf.Variable(tf.zeros(4096))
     fc1   = tf.matmul(fc0, fc1_W) + fc1_b
     regularizers += tf.nn.l2_loss(fc1_W)
 
@@ -157,7 +157,7 @@ def LeNet(x):
     fc1   = tf.nn.dropout(fc1, keep_prob)
 
     # TODO: Layer 4: Fully Connected. Input = 120. Output = 84.
-    fc2_W = tf.Variable(tf.truncated_normal(shape=(1000,500), mean = mu, stddev = sigma))
+    fc2_W = tf.Variable(tf.truncated_normal(shape=(4096,500), mean = mu, stddev = sigma))
     fc2_b = tf.Variable(tf.zeros(500))
     fc2   = tf.matmul(fc1, fc2_W) + fc2_b
     regularizers += tf.nn.l2_loss(fc2_W)

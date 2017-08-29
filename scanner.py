@@ -6,6 +6,7 @@ import glob
 import random
 import time
 import datetime
+from tqdm import tqdm
 from collections import deque
 from skimage.feature import hog
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -204,13 +205,14 @@ class Scanner():
 #     plt.show()
 
 scan = Scanner()
-img = imread("test_imgs/test1.jpg")
-windows = scan.slide_window(img, x_start_stop=[200, 3800], y_start_stop=[500, 2300], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
-window_img = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
-now = datetime.datetime.now()
-d = now.day
-m = now.minute
-s = now.second
-imsave("final_img_{}_{}_{}.jpg".format(d,m,s), window_img)
+for i in tqdm(range(10)):
+    img = imread("test_imgs/test{}.jpg".format(i+1))
+    windows = scan.slide_window(img, x_start_stop=[200, 3800], y_start_stop=[500, 2300], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
+    window_img = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
+    now = datetime.datetime.now()
+    d = now.day
+    m = now.minute
+    s = now.second
+    imsave("outputImages/final_img_{}.jpg".format(i+1), window_img)
 # plt.imshow(window_img)
 # plt.show()
