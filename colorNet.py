@@ -44,17 +44,17 @@ print("Number of testing examples =", n_test)
 print("Image data shape =", image_shape)
 print("Number of classes =", n_classes)
 
-# generate 5 random data points and show images
-fig, axs = plt.subplots(1, 5, figsize=(15, 6))  # create plot boxes for images
-fig.subplots_adjust(hspace = .2, wspace=.1)     # adjust height and width of spacing around boxes
-# axs = axs.ravel(order='C')                      # flatten array into 1-D array
-for i in range(5):
-    index = random.randint(0, len(X_train))
-    image = X_train[index]
-    axs[i].axis('off')
-    axs[i].imshow(image)
-    axs[i].set_title(y_train[index])
-plt.show()
+# # generate 5 random data points and show images
+# fig, axs = plt.subplots(1, 5, figsize=(15, 6))  # create plot boxes for images
+# fig.subplots_adjust(hspace = .2, wspace=.1)     # adjust height and width of spacing around boxes
+# # axs = axs.ravel(order='C')                      # flatten array into 1-D array
+# for i in range(5):
+#     index = random.randint(0, len(X_train))
+#     image = X_train[index]
+#     axs[i].axis('off')
+#     axs[i].imshow(image)
+#     axs[i].set_title(y_train[index])
+# plt.show()
 
 # #Plot histogram of training labels used
 # plt.figure(figsize=(12, 4))
