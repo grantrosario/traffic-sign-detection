@@ -89,71 +89,29 @@ class Scanner():
 
         predictions = self.predict(images)
         for num in range(len(predictions)):
+            startx = bboxes[num][0][0]
+            endx = bboxes[num][1][0]
+            starty = bboxes[num][0][1]
+            endy = bboxes[num][1][1]
+
             if(predictions[num] == 1):
-                cv2.rectangle(imcopy, bboxes[num][0], bboxes[num][1], color, thick)
-
-                # Locate box in black image which corresponds to predicted sign in original image
-                # and add one to the pixels
-                # heatmap[bboxes[num][0][1]:bboxes[num][1][1], bboxes[num][0][0]:bboxes[num][1][0]] += 1
-                #
-                # # Any pixels in the image smaller than 0 are clipped to 0
-                # # Any pixels in the image larger than 255 are clipped to 255
-                # heatmap = np.clip(heatmap, 0, 255)
-                #
-                #
-                # currentLabels = label(heatmap, structure=[[1, 1, 1],
-                #                                               [1, 1, 1],
-                #                                               [1, 1, 1]])
-                #
-                # heatMapInt = cv2.equalizeHist(heatmap.astype(np.uint8))
-                # heatColor = cv2.applyColorMap(heatMapInt, cv2.COLORMAP_JET)
-                # heatColor = cv2.cvtColor(heatColor, code=cv2.COLOR_BGR2RGB)
-                #
-                # for i in range(currentLabels[1]):
-                #     # nonzero() returns two arrays whose values represent the index of nonzero values in the initial array
-                #     # example: nparray.nonzero() => array[1 1 1, 2 2 2], array[0, 1, 2, 0, 1, 2] means there
-                #     # are nonzero values in indices [1,0],[1,1],[1,2] and so on...
-                #
-                #     # two arrays representing x coords and y coords of image features
-                #     nz = (currentLabels[0] == i + 1).nonzero()
-                #
-                #     # y coordinates
-                #     nzY = np.array(nz[0])
-                #
-                #     # x coordinates
-                #     nzX = np.array(nz[1])
-                #
-                #     # minimum and maximum values
-                #     tlX = np.min(nzX)
-                #     tlY = np.min(nzY)
-                #     brX = np.max(nzX)
-                #     brY = np.max(nzY)
-                #
-                #     vehicleBoxes.append([tlX, tlY, brX, brY])
-                #
-                # multi_boxes, _ = cv2.groupRectangles(rectList=np.array(vehicleBoxes).tolist(),
-                #                                groupThreshold=10, eps=.1)
-                #
-                # for one_box in multi_boxes:
-                #     one_box = np.array(one_box)
-                #     one_box = one_box.reshape(one_box.size)
-                #
-                #     cv2.rectangle(img=imcopy, pt1=(one_box[0], one_box[1]), pt2=(one_box[2], one_box[3]),
-                #                   color=color, thickness=thick)
-                    # Draw a rectangle given bbox coordinates
-                    #cv2.rectangle(imcopy, bbox[0], bbox[1], color, thick)
+                cv2.rectangle(imcopy, (startx, starty), (endx, endy), color, thick)
+                heatmap[starty:endy, startx:endx] += 1
         # Return the image copy with boxes drawn
-        return imcopy
+        return imcopy, heatmap
 
 
+    def add_heat(heatmap, bbox_list):
+        # Iterate through list of bboxes
+        for box in bbox_list:
+            # Add += 1 for all pixels inside each bbox
+            # Assuming each "box" takes the form ((x1, y1), (x2, y2))
+            heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
+
+        # Return updated heatmap
+        return heatmap
 
 
-
-# crp = img[1570:1750, 1590:1740]
-# crp = img[1280:1440, 1270:1440] # sign
-# crp = img[1280:1440, 1290:1460]
-# plt.imshow(crp)
-# plt.show()
     def predict(self, images):
 
         my_images = []
@@ -161,58 +119,61 @@ class Scanner():
         for image in images:
             new_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             image = cv2.resize(image, (IMG_SIZE,IMG_SIZE))
-            # for c in range(3):
-            #     image[:,:,c] = image[:,:,c] - np.mean(image[:,:,c])
-            gray = cv2.cvtColor(new_image, cv2.COLOR_RGB2GRAY)
-            blur = cv2.GaussianBlur(gray, (5,5), 20.0)
-            image = cv2.addWeighted(gray, 2, blur, -1, 0)
-            image = cv2.equalizeHist(image)
-            image = equalize_hist(image)
+            # # for c in range(3):
+            # #     image[:,:,c] = image[:,:,c] - np.mean(image[:,:,c])
+            # gray = cv2.cvtColor(new_image, cv2.COLOR_RGB2GRAY)
+            # blur = cv2.GaussianBlur(gray, (5,5), 20.0)
+            # image = cv2.addWeighted(gray, 2, blur, -1, 0)
+            # image = cv2.equalizeHist(image)
+            # image = equalize_hist(image)
             my_images.append(image)
 
         my_images = np.asarray(my_images)
-        my_images = np.reshape(my_images, (-1, IMG_SIZE, IMG_SIZE, 1))
-        my_labels = [1]
+        my_images = np.reshape(my_images, (-1, IMG_SIZE, IMG_SIZE, 3))
 
         print("predicting {} images...".format(len(images)))
         with tf.Session() as sess:
-            saver = tf.train.import_meta_graph('detection_net/model.meta')
-            saver.restore(sess, tf.train.latest_checkpoint('detection_net/.'))
+            saver = tf.train.import_meta_graph('color_net/model.meta')
+            saver.restore(sess, tf.train.latest_checkpoint('color_net/.'))
             graph = tf.get_default_graph()
-            print("Model restored...")
+            #print("Model restored...")
             x = graph.get_tensor_by_name("input_data:0")
-            print("x restored...")
+            #print("x restored...")
             keep_prob = graph.get_tensor_by_name("keep_prob:0")
-            print("keep_prob...")
+            #print("keep_prob...")
             prediction = graph.get_tensor_by_name("prediction:0")
-            print("prediction op restored...")
+            #print("prediction op restored...")
 
 
             sess.run(prediction, feed_dict={x: my_images, keep_prob: 1.})
-            print("prediction op finished...")
+            #print("prediction op finished...")
             predictions = (prediction.eval(feed_dict={x: my_images, keep_prob: 1.}))
-            print("predictions assigned...")
+            #print("predictions assigned...")
         print("DONE PREDICTING")
         return predictions
 
+
 # scan = Scanner()
-# for num in range(8):
-#     img = imread("test_imgs/test{}.jpg".format(num+1))
-#     windows = scan.slide_window(img, x_start_stop=[200, 3800], y_start_stop=[500, 2300], xy_window=(128, 128), xy_overlap=(0.5, 0.5))
-#     window_img = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=6)
-#
-#     plt.imshow(window_img)
-#     plt.show()
+# for i in tqdm(range(10)):
+#     img = imread("test_imgs/test{}.jpg".format(i+1))
+#     windows = scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[None, 2300], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
+#     window_img = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
+#     now = datetime.datetime.now()
+#     d = now.day
+#     m = now.minute
+#     s = now.second
+#     imsave("outputImages/final_img_{}.jpg".format(i+1), window_img)
 
 scan = Scanner()
-for i in tqdm(range(10)):
-    img = imread("test_imgs/test{}.jpg".format(i+1))
-    windows = scan.slide_window(img, x_start_stop=[200, 3800], y_start_stop=[500, 2300], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
-    window_img = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
-    now = datetime.datetime.now()
-    d = now.day
-    m = now.minute
-    s = now.second
-    imsave("outputImages/final_img_{}.jpg".format(i+1), window_img)
-# plt.imshow(window_img)
-# plt.show()
+img = imread("test_imgs/test10.jpg")
+windows = scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[500, 2300], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
+window_img, heatmap = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
+fig = plt.figure()
+plt.subplot(121)
+plt.imshow(window_img)
+plt.title('Sign Position')
+plt.subplot(122)
+plt.imshow(heatmap, cmap='hot')
+plt.title('Heat Map')
+fig.tight_layout()
+plt.show()
