@@ -117,71 +117,57 @@ def LeNet(x):
     # Arguments used for tf.truncated_normal, randomly defines variables for the weights and biases for each layer
     mu = 0
     sigma = 0.1
+    ft_sz = 3
 
-    # TODO: Layer 1: Convolutional. Input = 64x64x1. Output = 64x64x6.
-    conv1_W = tf.Variable(tf.truncated_normal(shape=(3,3,3,32), mean = mu, stddev = sigma))
-    conv1_b = tf.Variable(tf.zeros(32))
+    # TODO: Layer 1: Convolutional. Input = 64x64x3. Output = 64x64x1.
+    conv1_W = tf.Variable(tf.truncated_normal(shape=(1,1,3,1), mean = mu, stddev = sigma))
+    conv1_b = tf.Variable(tf.zeros(1))
     conv1   = tf.nn.conv2d(x, conv1_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv1_b
     regularizers = tf.nn.l2_loss(conv1_W)
-
     # TODO: Activation.
     conv1 = tf.nn.relu(conv1)
 
-    # TODO: Pooling. Input = 64x64x6. Output = 32x32x8.
-    conv1 = tf.nn.max_pool(conv1, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
+    # TODO: Layer 1: Convolutional. Input = 64x64x1. Output = 64x64x3.
+    conv1_2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,1,4), mean = mu, stddev = sigma))
+    conv1_2_b = tf.Variable(tf.zeros(4))
+    conv1_2   = tf.nn.conv2d(conv1, conv1_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv1_2_b
+    regularizers = tf.nn.l2_loss(conv1_2_W)
+    # TODO: Activation.
+    conv1_2 = tf.nn.relu(conv1_2)
 
-    # TODO: Layer 1: Convolutional. Input = 32x32x8. Output = 32x32x16.
-    conv2_W = tf.Variable(tf.truncated_normal(shape=(3,3,32,64), mean = mu, stddev = sigma))
-    conv2_b = tf.Variable(tf.zeros(64))
-    conv2   = tf.nn.conv2d(conv1, conv2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv2_b
+    # TODO: Pooling. Input = 64x64x3. Output = 32x32x4.
+    conv1_2 = tf.nn.max_pool(conv1_2, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
+
+    # TODO: Layer 1: Convolutional. Input = 32x32x4. Output = 32x32x8.
+    conv2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,4,8), mean = mu, stddev = sigma))
+    conv2_b = tf.Variable(tf.zeros(8))
+    conv2   = tf.nn.conv2d(conv1_2, conv2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv2_b
     regularizers = tf.nn.l2_loss(conv2_W)
-
     # TODO: Activation.
     conv2 = tf.nn.relu(conv2)
 
-    # TODO: Pooling. Input = 32x32x16. Output = 16x16x16.
+    # TODO: Pooling. Input = 32x32x8. Output = 16x16x8.
     conv2 = tf.nn.max_pool(conv2, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
-    # TODO: Layer 2: Convolutional. Output = 32x32x16.
-    conv3_W = tf.Variable(tf.truncated_normal(shape=(3, 3, 64, 128), mean = mu, stddev = sigma))
+    # TODO: Layer 1: Convolutional. Input = 16x16x8. Output = 16x16x64.
+    conv3_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,8,128), mean = mu, stddev = sigma))
     conv3_b = tf.Variable(tf.zeros(128))
     conv3   = tf.nn.conv2d(conv2, conv3_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv3_b
-    regularizers += tf.nn.l2_loss(conv3_W)
-
+    regularizers = tf.nn.l2_loss(conv3_W)
     # TODO: Activation.
     conv3 = tf.nn.relu(conv3)
 
-    # TODO: Pooling. Input = 32x32x16. Output = 16x16x16.
+    # TODO: Pooling. Input = 16x16x64. Output = 8x8x64.
     conv3 = tf.nn.max_pool(conv3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
     # TODO: Flatten. Input = 16x16x16. Output = 4096.
-    fc1   = flatten(conv3)
-
-    # # TODO: Layer 3: Fully Connected. Input = 4096. Output = 120.
-    # fc1_W = tf.Variable(tf.truncated_normal(shape=(4096, 4096), mean = mu, stddev = sigma))
-    # fc1_b = tf.Variable(tf.zeros(4096))
-    # fc1   = tf.matmul(fc0, fc1_W) + fc1_b
-    # regularizers += tf.nn.l2_loss(fc1_W)
-    #
-    # # TODO: Activation.
-    # fc1   = tf.nn.relu(fc1)
-    # fc1   = tf.nn.dropout(fc1, keep_prob)
-
-    # TODO: Layer 4: Fully Connected. Input = 120. Output = 84.
-    fc2_W = tf.Variable(tf.truncated_normal(shape=(8192,5000), mean = mu, stddev = sigma))
-    fc2_b = tf.Variable(tf.zeros(5000))
-    fc2   = tf.matmul(fc1, fc2_W) + fc2_b
-    regularizers += tf.nn.l2_loss(fc2_W)
-
-    # TODO: Activation.
-    fc2   = tf.nn.relu(fc2)
-    fc2   = tf.nn.dropout(fc2, keep_prob)
+    fc0   = flatten(conv3)
 
     # TODO: Layer 5: Fully Connected. Input = 84. Output = 10.
-    fc3_W  = tf.Variable(tf.truncated_normal(shape=(5000,2), mean = mu, stddev = sigma))
+    fc3_W  = tf.Variable(tf.truncated_normal(shape=(8192,2), mean = mu, stddev = sigma))
     fc3_b  = tf.Variable(tf.zeros(2))
     regularizers += tf.nn.l2_loss(fc3_W)
-    logits = tf.matmul(fc2, fc3_W) + fc3_b
+    logits = tf.matmul(fc0, fc3_W) + fc3_b
 
     return [logits, regularizers]
 

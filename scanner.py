@@ -26,6 +26,10 @@ IMG_SIZE = 64
 
 class Scanner():
 
+    def __init__(self):
+        self.g = tf.Graph()
+        self.h = tf.Graph()
+
     def slide_window(self, img, x_start_stop=[None, None], y_start_stop=[None, None],
                      xy_window=(64, 64), xy_overlap=(0.5, 0.5)):
         # If x and/or y start/stop positions not defined, set to image size
@@ -87,7 +91,7 @@ class Scanner():
             endy = bbox[1][1]
             images.append(imcopy[starty:endy, startx:endx])
 
-        predictions = self.predict(images)
+        predictions = self.detect(images)
         for num in range(len(predictions)):
             startx = bboxes[num][0][0]
             endx = bboxes[num][1][0]
@@ -97,11 +101,16 @@ class Scanner():
             if(predictions[num] == 1):
                 cv2.rectangle(imcopy, (startx, starty), (endx, endy), color, thick)
                 heatmap[starty:endy, startx:endx] += 1
+
         # Return the image copy with boxes drawn
         return imcopy, heatmap
 
+    def apply_threshold(self, heatmap, threshold):
+        heatmap[heatmap <= threshold] = 0
+        return heatmap
 
-    def add_heat(heatmap, bbox_list):
+
+    def add_heat(self, heatmap, bbox_list):
         # Iterate through list of bboxes
         for box in bbox_list:
             # Add += 1 for all pixels inside each bbox
@@ -111,8 +120,29 @@ class Scanner():
         # Return updated heatmap
         return heatmap
 
+    def draw_labeled_boxes(self, img, labels):
+        signs = []
+        for sign_num in range(1, labels[1]+1):
+            # Find pixels with each car_number label value
+            nonzero = (labels[0] == sign_num).nonzero()
+            # Identify x and y values of those pixels
+            nonzeroy = np.array(nonzero[0])
+            nonzerox = np.array(nonzero[1])
+            startx = np.min(nonzerox) - 30
+            endx = np.max(nonzerox) + 30
+            starty = np.min(nonzeroy) - 35
+            endy = np.max(nonzeroy) + 30
+            # Define a bounding box based on min/max x and y
+            bbox = ((startx, starty), (endx, endy))
+            # append picture of sign for future recognition
+            signs.append(img[starty:endy, startx:endx])
+            # Draw the box on the image
+            cv2.rectangle(img, bbox[0], bbox[1], (0,0,255), 6)
+        # Return the image
+        return img, signs
 
-    def predict(self, images):
+
+    def detect(self, images):
 
         my_images = []
 
@@ -129,19 +159,20 @@ class Scanner():
             my_images.append(image)
 
         my_images = np.asarray(my_images)
+        print(my_images.shape)
         my_images = np.reshape(my_images, (-1, IMG_SIZE, IMG_SIZE, 3))
 
         print("predicting {} images...".format(len(images)))
-        with tf.Session() as sess:
+        with tf.Session(graph = self.g) as sess:
+            print("IN PREDICT")
             saver = tf.train.import_meta_graph('color_net/model.meta')
             saver.restore(sess, tf.train.latest_checkpoint('color_net/.'))
-            graph = tf.get_default_graph()
             #print("Model restored...")
-            x = graph.get_tensor_by_name("input_data:0")
+            x = self.g.get_tensor_by_name("input_data:0")
             #print("x restored...")
-            keep_prob = graph.get_tensor_by_name("keep_prob:0")
+            keep_prob = self.g.get_tensor_by_name("keep_prob:0")
             #print("keep_prob...")
-            prediction = graph.get_tensor_by_name("prediction:0")
+            prediction = self.g.get_tensor_by_name("prediction:0")
             #print("prediction op restored...")
 
 
@@ -149,7 +180,47 @@ class Scanner():
             #print("prediction op finished...")
             predictions = (prediction.eval(feed_dict={x: my_images, keep_prob: 1.}))
             #print("predictions assigned...")
-        print("DONE PREDICTING")
+        print("DONE DETECTING")
+        return predictions
+
+    def recognize(self, images):
+
+        my_images = []
+
+        for image in images:
+            new_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            image = cv2.resize(new_image, (IMG_SIZE,IMG_SIZE))
+            gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+            blur = cv2.GaussianBlur(gray, (5,5), 20.0)
+            image = cv2.addWeighted(gray, 2, blur, -1, 0)
+            image = cv2.equalizeHist(image)
+            image = equalize_hist(image)
+            my_images.append(image)
+
+        my_images = np.asarray(my_images)
+        print(my_images.shape)
+        my_images = np.reshape(my_images, (-1, IMG_SIZE, IMG_SIZE, 1))
+
+        print("predicting {} images...".format(len(images)))
+        with tf.Session(graph = self.h) as sess:
+            print("IN RECOGNIZE")
+            saver = tf.train.import_meta_graph('test_net/model.meta')
+            saver.restore(sess, tf.train.latest_checkpoint('test_net/.'))
+
+            #print("Model restored...")
+            x = self.h.get_tensor_by_name("input_data:0")
+            #print("x restored...")
+            keep_prob = self.h.get_tensor_by_name("keep_prob:0")
+            #print("keep_prob...")
+            prediction = self.h.get_tensor_by_name("prediction:0")
+            #print("prediction op restored...")
+
+
+            sess.run(prediction, feed_dict={x: my_images, keep_prob: 1.})
+            #print("prediction op finished...")
+            predictions = (prediction.eval(feed_dict={x: my_images, keep_prob: 1.}))
+            #print("predictions assigned...")
+        print("DONE RECOGNIZING")
         return predictions
 
 
@@ -157,23 +228,39 @@ class Scanner():
 # for i in tqdm(range(10)):
 #     img = imread("test_imgs/test{}.jpg".format(i+1))
 #     windows = scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[None, 2300], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
-#     window_img = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
+#     window_img, heat = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
 #     now = datetime.datetime.now()
 #     d = now.day
 #     m = now.minute
 #     s = now.second
 #     imsave("outputImages/final_img_{}.jpg".format(i+1), window_img)
 
+# 1, 3, 4, 5
 scan = Scanner()
-img = imread("test_imgs/test10.jpg")
-windows = scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[500, 2300], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
+img = imread("test_imgs/test7.jpg")
+windows = scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[None, 2300], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
 window_img, heatmap = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
+
+heat2 = scan.apply_threshold(heatmap, 2)
+labels = label(heat2)
+
+draw_img, signs = scan.draw_labeled_boxes(np.copy(img), labels)
+recognitions = scan.recognize(signs)
+for rec in recognitions:
+    print(rec)
+# plt.imshow(sign_img)
+# plt.imshow(draw_img)
+# plt.show()
+
 fig = plt.figure()
 plt.subplot(121)
-plt.imshow(window_img)
-plt.title('Sign Position')
-plt.subplot(122)
-plt.imshow(heatmap, cmap='hot')
-plt.title('Heat Map')
+plt.imshow(signs[0])
+plt.title(recognitions[0])
+# plt.subplot(122)
+# plt.imshow(heatmap, cmap='hot')
+# plt.title('Heat Map')
+# plt.subplot(122)
+# plt.imshow(signs[1])
+# plt.title(recognitions[1])
 fig.tight_layout()
 plt.show()

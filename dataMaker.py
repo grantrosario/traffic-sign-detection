@@ -209,7 +209,7 @@ def main():
     clean = DataMaker('0_not_sign/', '1_sign/')
     clean.processData()
     detectionData = clean.getDetectionData()
-    #recognitionData = clean.getRecognitionData()
+    recognitionData = clean.getRecognitionData()
 
 
 if __name__ == '__main__':
