@@ -63,7 +63,6 @@ hist, bins = np.histogram(y_train, bins = n_classes)
 width = 0.7 * (bins[1] - bins[0]) / 2
 center = (bins[:-1] + bins[1:]) / 2
 barlist = plt.bar(center, hist, align = 'center', width=width, color='royalblue')
-barlist[1].set_color('tomato')
 plt.title("Frequency of labels used")
 plt.xlabel("Label number")
 plt.ylabel("Number of images")
@@ -179,7 +178,7 @@ def LeNet(x):
     return [logits, regularizers]
 
 
-rate = 0.0008
+rate = 0.001
 keep_prob = tf.placeholder(tf.float32, name="keep_prob") # probablity of keeping for dropout
 x = tf.placeholder(tf.float32, (None, 64, 64, 1), name="input_data")
 y = tf.placeholder(tf.int32, (None))
