@@ -127,6 +127,13 @@ def LeNet(x):
     # TODO: Activation.
     conv1 = tf.nn.relu(conv1)
 
+    conv1_2_W = tf.Variable(tf.truncated_normal(shape=(3,3,8,8), mean = mu, stddev = sigma))
+    conv1_2_b = tf.Variable(tf.zeros(8))
+    conv1   = tf.nn.conv2d(conv1, conv1_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv1_2_b
+    regularizers = tf.nn.l2_loss(conv1_2_W)
+    # TODO: Activation.
+    conv1 = tf.nn.relu(conv1)
+
     # TODO: Pooling. Input = 64x64x8. Output = 32x32x8.
     conv1 = tf.nn.max_pool(conv1, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
@@ -135,6 +142,13 @@ def LeNet(x):
     conv2_b = tf.Variable(tf.zeros(16))
     conv2   = tf.nn.conv2d(conv1, conv2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv2_b
     regularizers = tf.nn.l2_loss(conv2_W)
+    # TODO: Activation.
+    conv2 = tf.nn.relu(conv2)
+
+    conv2_2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,16,16), mean = mu, stddev = sigma))
+    conv2_2_b = tf.Variable(tf.zeros(16))
+    conv2   = tf.nn.conv2d(conv2, conv2_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv2_2_b
+    regularizers = tf.nn.l2_loss(conv2_2_W)
     # TODO: Activation.
     conv2 = tf.nn.relu(conv2)
 
@@ -149,6 +163,14 @@ def LeNet(x):
     # TODO: Activation.
     conv3 = tf.nn.relu(conv3)
 
+    # TODO: Layer 1: Convolutional. Input = 16x16x16. Output = 16x16x32.
+    conv3_2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,32,32), mean = mu, stddev = sigma))
+    conv3_2_b = tf.Variable(tf.zeros(32))
+    conv3   = tf.nn.conv2d(conv3, conv3_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv3_2_b
+    regularizers = tf.nn.l2_loss(conv3_2_W)
+    # TODO: Activation.
+    conv3 = tf.nn.relu(conv3)
+
     # TODO: Pooling. Input = 16x16x32. Output = 8x8x32.
     conv3 = tf.nn.max_pool(conv3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
@@ -157,6 +179,14 @@ def LeNet(x):
     conv4_b = tf.Variable(tf.zeros(64))
     conv4   = tf.nn.conv2d(conv3, conv4_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv4_b
     regularizers = tf.nn.l2_loss(conv4_W)
+    # TODO: Activation.
+    conv4 = tf.nn.relu(conv4)
+
+    # TODO: Layer 1: Convolutional. Input = 8x8x32. Output = 8x8x64.
+    conv4_2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,64,64), mean = mu, stddev = sigma))
+    conv4_2_b = tf.Variable(tf.zeros(64))
+    conv4   = tf.nn.conv2d(conv4, conv4_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv4_2_b
+    regularizers = tf.nn.l2_loss(conv4_2_W)
     # TODO: Activation.
     conv4 = tf.nn.relu(conv4)
 
@@ -171,11 +201,19 @@ def LeNet(x):
     # TODO: Activation.
     conv5 = tf.nn.relu(conv5)
 
+    # TODO: Layer 1: Convolutional. Input = 4x4x64. Output = 4x4x128.
+    conv5_2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,128,128), mean = mu, stddev = sigma))
+    conv5_2_b = tf.Variable(tf.zeros(128))
+    conv5   = tf.nn.conv2d(conv5, conv5_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv5_2_b
+    regularizers = tf.nn.l2_loss(conv5_2_W)
+    # TODO: Activation.
+    conv5 = tf.nn.relu(conv5)
+
     # TODO: Pooling. Input = 4x4x128. Output = 2x2x128.
     conv5 = tf.nn.max_pool(conv5, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
     # TODO: Flatten. Input = 2x2x128. Output = 512.
-    fc0   = flatten(conv5)
+    fc0   = flatten(conv6)
 
     # TODO: Layer 5: Fully Connected. Input = 512. Output = 2.
     fc1_W  = tf.Variable(tf.truncated_normal(shape=(512,2), mean = mu, stddev = sigma))
@@ -255,7 +293,7 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
                 print("Early stopping counter: {}".format(early_stop_counter))
                 print("Learning rate: {}".format(rate))
                 print("Saving model...")
-                saver.save(sess, './models/detect-6/model')
+                saver.save(sess, './models/detect-11/model')
                 print()
                 continue
             elif(validation_accuracy <= prev_val_acc and early_stop_counter != 25):
@@ -282,8 +320,8 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
 gg = tf.Graph()
 with tf.Session(graph=gg) as sess:
     sess.run(tf.global_variables_initializer())
-    saver2 = tf.train.import_meta_graph('./models/detect-6/model.meta')
-    saver2.restore(sess, "./models/detect-6/model")
+    saver2 = tf.train.import_meta_graph('./models/detect-11/model.meta')
+    saver2.restore(sess, "./models/detect-11/model")
 
     prediction = gg.get_tensor_by_name("prediction:0")
     x = gg.get_tensor_by_name("input_data:0")
@@ -329,7 +367,7 @@ with tf.Session(graph=gg) as sess:
     precision = (precision / len(precisions)) * 100
 
     with open("Results.txt", mode='a') as f:
-        f.write("Detect-6 Network Results\n")
+        f.write("Detect-11 Network Results\n")
         f.write("---\n")
         f.write("Confusion matrix\n\n")
         f.write("Predicted\n {} <-- Actual\n".format(conf_mat))

@@ -210,6 +210,11 @@ def main():
     clean.processData()
     detectionData = clean.getDetectionData()
     recognitionData = clean.getRecognitionData()
+    with open("Results.txt", mode='w') as f:
+        f.write("--------------------\n")
+        f.write("Data Created\n")
+        f.write("--------------------\n")
+        f.write("--------------------\n")
 
 
 if __name__ == '__main__':

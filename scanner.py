@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import cv2
 from PIL import Image
 import matplotlib.pyplot as plt
@@ -85,6 +86,7 @@ class Scanner():
         # Make a copy of the image
         imcopy = np.copy(img)
         images = []
+        predictions = {}
         # Iterate through the bounding boxes
         for bbox in bboxes:
             startx = bbox[0][0]
@@ -93,14 +95,22 @@ class Scanner():
             endy = bbox[1][1]
             images.append(imcopy[starty:endy, startx:endx])
 
-        predictions = self.detect(images)
-        for num in range(len(predictions)):
+        predictions['model1'] = self.detect(images, 'models/detect-4/', tf.Graph())
+        predictions['model2'] = self.detect(images, 'models/detect-6/', tf.Graph())
+        predictions['model3'] = self.detect(images, 'models/detect-9/', tf.Graph())
+        predictions['model4'] = self.detect(images, 'models/detect-9-1x1/', tf.Graph())
+        predictions['model5'] = self.detect(images, 'models/detect-11/', tf.Graph())
+        for num in range(len(predictions['model1'])):
             startx = bboxes[num][0][0]
             endx = bboxes[num][1][0]
             starty = bboxes[num][0][1]
             endy = bboxes[num][1][1]
 
-            if(predictions[num] == 1):
+            vote = 0
+            for model in predictions:
+                vote += int(predictions[model][num])
+
+            if(vote >= (math.ceil(len(predictions)/2))):
                 cv2.rectangle(imcopy, (startx, starty), (endx, endy), color, thick)
                 heatmap[starty:endy, startx:endx] += 1
 
@@ -159,7 +169,7 @@ class Scanner():
         return img, signs, textboxes
 
 
-    def detect(self, images):
+    def detect(self, images, model_path, graph):
 
         my_images = []
 
@@ -179,15 +189,15 @@ class Scanner():
         my_images = np.reshape(my_images, (-1, IMG_SIZE, IMG_SIZE, 3))
 
         print("predicting {} images...".format(len(images)))
-        with tf.Session(graph = self.g) as sess:
-            saver = tf.train.import_meta_graph('models/detect-6/model.meta')
-            saver.restore(sess, tf.train.latest_checkpoint('models/detect-6/.'))
+        with tf.Session(graph = graph) as sess:
+            saver = tf.train.import_meta_graph('{}model.meta'.format(model_path))
+            saver.restore(sess, tf.train.latest_checkpoint('{}.'.format(model_path)))
             #print("Model restored...")
-            x = self.g.get_tensor_by_name("input_data:0")
+            x = graph.get_tensor_by_name("input_data:0")
             #print("x restored...")
-            keep_prob = self.g.get_tensor_by_name("keep_prob:0")
+            keep_prob = graph.get_tensor_by_name("keep_prob:0")
             #print("keep_prob...")
-            prediction = self.g.get_tensor_by_name("prediction:0")
+            prediction = graph.get_tensor_by_name("prediction:0")
             #print("prediction op restored...")
 
 
@@ -250,7 +260,7 @@ class Scanner():
 
 
 
-scan = Scanner()
+# scan = Scanner()
 # img = cv2.imread("test_imgs/test1.jpg")
 # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 # img = cv2.resize(img, (4032, 3024))
@@ -259,40 +269,49 @@ scan = Scanner()
 # windows += scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[700, 1900], xy_window=(256, 256), xy_overlap=(0.5, 0.5))
 # windows += scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[500, 2100], xy_window=(512, 512), xy_overlap=(0.5, 0.5))
 # scan.show_image_search(img, windows)
-for i in tqdm(range(10)):
-    img = cv2.imread("test_imgs/test{}.jpg".format(i+1))
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = cv2.resize(img, (4032, 3024))
-    windows = scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[1100, 1500], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
-    windows += scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[900, 1700], xy_window=(128, 128), xy_overlap=(0.5, 0.5))
-    windows += scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[700, 1900], xy_window=(256, 256), xy_overlap=(0.5, 0.5))
-    windows += scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[500, 2100], xy_window=(512, 512), xy_overlap=(0.5, 0.5))
-    window_img, heat = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
-    now = datetime.datetime.now()
-    d = now.day
-    m = now.minute
-    s = now.second
-    imsave("outputImages/window_img_{}.jpg".format(i+1), window_img)
+# for i in tqdm(range(10)):
+#     img = cv2.imread("test_imgs/test{}.jpg".format(i+1))
+#     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+#     img = cv2.resize(img, (4032, 3024))
+#     windows = scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[1100, 1500], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
+#     windows += scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[900, 1700], xy_window=(128, 128), xy_overlap=(0.5, 0.5))
+#     windows += scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[700, 1900], xy_window=(256, 256), xy_overlap=(0.5, 0.5))
+#     windows += scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[500, 2100], xy_window=(512, 512), xy_overlap=(0.5, 0.5))
+#     window_img, heat = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
+#     now = datetime.datetime.now()
+#     d = now.day
+#     m = now.minute
+#     s = now.second
+#     imsave("outputImages/window_img_{}.jpg".format(i+1), window_img)
 
 
 
 # # 1, 3, 4, 5
-# scan = Scanner()
-# # img = Image.open("test_imgs/test3.jpg")
-# # img = img.rotate(180)
-# # img.save("test_imgs/test3.jpg")
-# img = imread("test_imgs/test1.jpg")
-#
-# windows = scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[None, 2300], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
-# window_img, heatmap = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
-#
-# heat2 = scan.apply_threshold(heatmap, 2)
-# labels = label(heat2)
-#
-# draw_img, signs, textboxes = scan.draw_labeled_boxes(np.copy(img), labels)
-# recognitions = scan.recognize(signs)
-#
-# scan.draw_sign(draw_img, textboxes, recognitions)
+scan = Scanner()
+# img = Image.open("test_imgs/test3.jpg")
+# img = img.rotate(180)
+# img.save("test_imgs/test3.jpg")
+img = cv2.imread("test_imgs/test1.jpg")
+img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+img = cv2.resize(img, (4032, 3024))
+
+windows = scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[1100, 1500], xy_window=(64, 64), xy_overlap=(0.5, 0.5))
+windows += scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[900, 1700], xy_window=(128, 128), xy_overlap=(0.5, 0.5))
+windows += scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[700, 1900], xy_window=(256, 256), xy_overlap=(0.5, 0.5))
+windows += scan.slide_window(img, x_start_stop=[None, None], y_start_stop=[500, 2100], xy_window=(512, 512), xy_overlap=(0.5, 0.5))
+window_img, heatmap = scan.draw_boxes(img, windows, color=(0, 0, 255), thick=8)
+
+heat2 = scan.apply_threshold(heatmap, 2)
+
+labels = label(heat2)
+
+plt.imshow(labels[0])
+plt.show()
+
+draw_img, signs, textboxes = scan.draw_labeled_boxes(np.copy(img), labels)
+recognitions = scan.recognize(signs)
+
+scan.draw_sign(draw_img, textboxes, recognitions)
 # plt.imshow(draw_img)
 # plt.title(recognitions[0])
 # plt.show()

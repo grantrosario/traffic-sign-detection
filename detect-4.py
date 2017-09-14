@@ -164,10 +164,10 @@ def LeNet(x):
     return [logits, regularizers]
 
 
-rate = 0.0008
+rate = 0.001
 keep_prob = tf.placeholder(tf.float32, name="keep_prob") # probablity of keeping for dropout
 x = tf.placeholder(tf.float32, (None, 64, 64, 3), name="input_data")
-y = tf.placeholder(tf.int32, (None))
+y = tf.placeholder(tf.int32, (None), name="labels")
 one_hot_y = tf.one_hot(y, 2)
 
 logits, regularizers = LeNet(x)
@@ -178,6 +178,7 @@ optimizer = tf.train.AdamOptimizer(learning_rate = rate)
 training_operation = optimizer.minimize(loss_operation)
 
 prediction = tf.argmax(logits, 1, name="prediction")
+#conf_mat = tf.confusion_matrix(labels=y, predictions=prediction, num_classes=n_classes)
 correct_prediction = tf.equal(prediction, tf.argmax(one_hot_y, 1))
 accuracy_operation = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 saver = tf.train.Saver()
@@ -191,6 +192,7 @@ def evaluate(X_data, y_data):
     for offset in tqdm(range(0, num_examples, BATCH_SIZE)):
         batch_x, batch_y = X_data[offset:offset+BATCH_SIZE], y_data[offset:offset+BATCH_SIZE]
         accuracy = sess.run(accuracy_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 1.})
+        #print("PREDICTION: ", sess.run(prediction, feed_dict={x: batch_x, y: batch_y, keep_prob: 1.}))
         total_accuracy += (accuracy * len(batch_x))
     return total_accuracy / num_examples
 
@@ -208,6 +210,7 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
 
         prev_val_acc = 0
         early_stop_counter = 0
+        rate_decay = 0.0001
         print()
         print("Training...")
         for i in range(EPOCHS):
@@ -237,7 +240,11 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
                 continue
             elif(validation_accuracy <= prev_val_acc and early_stop_counter != 25):
                 early_stop_counter += 1
-                rate -= 0.0001
+                if((rate - rate_decay) < 0):
+                    rate_decay *= 0.1
+                    rate -= rate_decay
+                else:
+                    rate -= rate_decay
                 print("Early stopping counter: {}".format(early_stop_counter))
                 print("Learning rate: {}".format(rate))
                 print()
@@ -252,9 +259,64 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
 #==============TESTING==============
 #===================================
 # TEST MODEL ACCURACY
-with tf.Session() as sess:
+gg = tf.Graph()
+with tf.Session(graph=gg) as sess:
     sess.run(tf.global_variables_initializer())
     saver2 = tf.train.import_meta_graph('./models/detect-4/model.meta')
     saver2.restore(sess, "./models/detect-4/model")
-    test_accuracy = evaluate(X_test, y_test)
-    print("Test Set Accuracy = {:.3f}".format(test_accuracy))
+
+    prediction = gg.get_tensor_by_name("prediction:0")
+    x = gg.get_tensor_by_name("input_data:0")
+    keep_prob = gg.get_tensor_by_name("keep_prob:0")
+
+
+    sess.run(prediction, feed_dict={x: X_test, keep_prob: 1.})
+
+    predictions = (prediction.eval(feed_dict={x: X_test, keep_prob: 1.}))
+
+    conf_mat = sess.run(tf.confusion_matrix(y_test, predictions, n_classes))
+
+    total = 0
+    true_sum = 0
+    false_sum = 0
+    recalls = []
+    precisions = []
+    recall = 0
+    precision = 0
+    for i in range(len(conf_mat)): # row (actual)
+        pred_pos = 0
+        act_pos = 0
+        for j in range(len(conf_mat[i])): # column of row (prediction)
+            total += conf_mat[i][j]
+            pred_pos += conf_mat[j][i]
+            if(i == j):
+                true_pos = conf_mat[i][j]
+                true_sum += true_pos
+                act_pos += true_pos
+            elif(i != j):
+                false_neg = conf_mat[i][j]
+                false_sum += false_neg
+                act_pos += false_neg
+        recalls.append((true_pos/act_pos))
+        precisions.append((true_pos/pred_pos))
+    for i in range(len(recalls)):
+        recall += recalls[i]
+        precision += precisions[i]
+
+    accuracy = (true_sum/total) * 100
+    error_rate = (false_sum/total) * 100
+    recall = (recall / len(recalls)) * 100
+    precision = (precision / len(precisions)) * 100
+
+    with open("Results.txt", mode='a') as f:
+        f.write("Detect-4 Network Results\n")
+        f.write("---\n")
+        f.write("Confusion matrix\n\n")
+        f.write("Predicted\n {} <-- Actual\n".format(conf_mat))
+        f.write("---\n")
+        f.write("Error rate: {:.2f}%\n".format(error_rate))
+        f.write("Recall: {:.2f}%\n".format(recall))
+        f.write("Precision: {:.2f}%\n".format(precision))
+        f.write("Network Accuracy: {:.2f}%\n".format(accuracy))
+        f.write("------------------------------------\n")
+        f.write("------------------------------------\n")
