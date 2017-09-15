@@ -352,7 +352,7 @@ with tf.Session(graph=gg) as sess:
     recall = (recall / len(recalls)) * 100
     precision = (precision / len(precisions)) * 100
 
-    with open("Results.txt", mode='a') as f:
+    with open("detection_results.txt", mode='a') as f:
         f.write("Detect-9 Network Results\n")
         f.write("---\n")
         f.write("Confusion matrix\n\n")

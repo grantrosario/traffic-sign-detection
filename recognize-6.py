@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 import matplotlib.pyplot as plt
 import pickle
 import random
@@ -12,6 +13,8 @@ from scipy.misc import imread, imsave, imresize
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
+
+# np.set_printoptions(threshold=sys.maxsize)
 
 data_file = "recognition_data.p"
 
@@ -55,7 +58,7 @@ for i in range(5):
     axs[i].axis('off')
     axs[i].imshow(image)
     axs[i].set_title(y_train[index])
-plt.show()
+#plt.show()
 
 #Plot histogram of training labels used
 plt.figure(figsize=(12, 4))
@@ -66,7 +69,7 @@ barlist = plt.bar(center, hist, align = 'center', width=width, color='royalblue'
 plt.title("Frequency of labels used")
 plt.xlabel("Label number")
 plt.ylabel("Number of images")
-plt.show()
+#plt.show()
 
 #========PREPROCESSING==============
 #===================================
@@ -114,66 +117,78 @@ import tensorflow as tf
 from tensorflow.contrib.layers import flatten
 
 EPOCHS = 100
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 beta = 0.001
 
 def LeNet(x):
     # Arguments used for tf.truncated_normal, randomly defines variables for the weights and biases for each layer
     mu = 0
     sigma = 0.1
+    ft_sz = 3
 
-    # TODO: Layer 1: Convolutional. Input = 32x32x1. Output = 28x28x6.
-    conv1_W = tf.Variable(tf.truncated_normal(shape=(5,5,1,6), mean = mu, stddev = sigma))
-    conv1_b = tf.Variable(tf.zeros(6))
-    conv1   = tf.nn.conv2d(x, conv1_W, strides = [1, 1, 1, 1], padding = 'VALID') + conv1_b
+    # TODO: Layer 1: Convolutional. Input = 64x64x1. Output = 64x64x8.
+    conv1_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,1,8), mean = mu, stddev = sigma))
+    conv1_b = tf.Variable(tf.zeros(8))
+    conv1   = tf.nn.conv2d(x, conv1_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv1_b
     regularizers = tf.nn.l2_loss(conv1_W)
-
     # TODO: Activation.
     conv1 = tf.nn.relu(conv1)
 
-    # TODO: Pooling. Input = 28x28x6. Output = 14x14x6.
-    conv1 = tf.nn.max_pool(conv1, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'VALID')
+    # TODO: Pooling. Input = 64x64x8. Output = 32x32x8.
+    conv1 = tf.nn.max_pool(conv1, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
-    # TODO: Layer 2: Convolutional. Output = 10x10x16.
-    conv2_W = tf.Variable(tf.truncated_normal(shape=(5, 5, 6, 16), mean = mu, stddev = sigma))
+    # TODO: Layer 2: Convolutional. Output = 32x32x16.
+    conv2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz, ft_sz, 8, 16), mean = mu, stddev = sigma))
     conv2_b = tf.Variable(tf.zeros(16))
-    conv2   = tf.nn.conv2d(conv1, conv2_W, strides = [1, 1, 1, 1], padding = 'VALID') + conv2_b
+    conv2   = tf.nn.conv2d(conv1, conv2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv2_b
     regularizers += tf.nn.l2_loss(conv2_W)
-
     # TODO: Activation.
     conv2 = tf.nn.relu(conv2)
 
-    # TODO: Pooling. Input = 10x10x16. Output = 5x5x16.
-    conv2 = tf.nn.max_pool(conv2, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'VALID')
+    # TODO: Pooling. Input = 32x32x16. Output = 16x16x16.
+    conv2 = tf.nn.max_pool(conv2, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
-    # TODO: Flatten. Input = 5x5x16. Output = 400.
-    fc0   = flatten(conv2)
+    # TODO: Layer 2: Convolutional. Output = 16x16x32.
+    conv3_W = tf.Variable(tf.truncated_normal(shape=(ft_sz, ft_sz, 16, 32), mean = mu, stddev = sigma))
+    conv3_b = tf.Variable(tf.zeros(32))
+    conv3   = tf.nn.conv2d(conv2, conv3_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv3_b
+    regularizers += tf.nn.l2_loss(conv3_W)
+    # TODO: Activation.
+    conv3 = tf.nn.relu(conv3)
 
-    # TODO: Layer 3: Fully Connected. Input = 400. Output = 120.
-    fc1_W = tf.Variable(tf.truncated_normal(shape=(2704, 120), mean = mu, stddev = sigma))
-    fc1_b = tf.Variable(tf.zeros(120))
-    fc1   = tf.matmul(fc0, fc1_W) + fc1_b
+    # TODO: Pooling. Input = 16x16x32. Output = 8x8x32.
+    conv3 = tf.nn.max_pool(conv3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
+
+    # TODO: Layer 2: Convolutional. Output = 8x8x64.
+    conv4_W = tf.Variable(tf.truncated_normal(shape=(ft_sz, ft_sz, 32, 64), mean = mu, stddev = sigma))
+    conv4_b = tf.Variable(tf.zeros(64))
+    conv4   = tf.nn.conv2d(conv3, conv4_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv4_b
+    regularizers += tf.nn.l2_loss(conv4_W)
+    # TODO: Activation.
+    conv4 = tf.nn.relu(conv4)
+
+    # TODO: Pooling. Input = 8x8x64. Output = 4x4x64.
+    conv4 = tf.nn.max_pool(conv4, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
+
+    # TODO: Layer 2: Convolutional. Output = 4x4x128.
+    conv5_W = tf.Variable(tf.truncated_normal(shape=(ft_sz, ft_sz, 64, 128), mean = mu, stddev = sigma))
+    conv5_b = tf.Variable(tf.zeros(128))
+    conv5   = tf.nn.conv2d(conv4, conv5_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv5_b
+    regularizers += tf.nn.l2_loss(conv5_W)
+    # TODO: Activation.
+    conv5 = tf.nn.relu(conv5)
+
+    # TODO: Pooling. Input = 4x4x128. Output = 2x2x128.
+    conv5 = tf.nn.max_pool(conv5, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
+
+    # TODO: Flatten. Input = 2x2x128. Output = 512.
+    fc0   = flatten(conv5)
+
+    # TODO: Layer 3: Fully Connected. Input = 2048. Output = 120.
+    fc1_W  = tf.Variable(tf.truncated_normal(shape=(512, 43), mean = mu, stddev = sigma))
+    fc1_b  = tf.Variable(tf.zeros(43))
     regularizers += tf.nn.l2_loss(fc1_W)
-
-    # TODO: Activation.
-    fc1   = tf.nn.relu(fc1)
-    fc1   = tf.nn.dropout(fc1, keep_prob)
-
-    # TODO: Layer 4: Fully Connected. Input = 120. Output = 84.
-    fc2_W = tf.Variable(tf.truncated_normal(shape=(120,84), mean = mu, stddev = sigma))
-    fc2_b = tf.Variable(tf.zeros(84))
-    fc2   = tf.matmul(fc1, fc2_W) + fc2_b
-    regularizers += tf.nn.l2_loss(fc2_W)
-
-    # TODO: Activation.
-    fc2   = tf.nn.relu(fc2)
-    fc2   = tf.nn.dropout(fc2, keep_prob)
-
-    # TODO: Layer 5: Fully Connected. Input = 84. Output = 10.
-    fc3_W  = tf.Variable(tf.truncated_normal(shape=(84,43), mean = mu, stddev = sigma))
-    fc3_b  = tf.Variable(tf.zeros(43))
-    regularizers += tf.nn.l2_loss(fc3_W)
-    logits = tf.matmul(fc2, fc3_W) + fc3_b
+    logits = tf.matmul(fc0, fc1_W) + fc1_b
 
     return [logits, regularizers]
 
@@ -222,6 +237,7 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
 
         prev_val_acc = 0
         early_stop_counter = 0
+        rate_decay = 0.0001
         print()
         print("Training...")
         for i in range(EPOCHS):
@@ -244,16 +260,23 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
                 early_stop_counter = 0
                 prev_val_acc = validation_accuracy
                 print("Early stopping counter: {}".format(early_stop_counter))
+                print("Learning rate: {}".format(rate))
                 print("Saving model...")
-                saver.save(sess, './test_net/model')
+                saver.save(sess, './models/recognize-6/model')
                 print()
                 continue
-            elif(validation_accuracy <= prev_val_acc and early_stop_counter != 4):
+            elif(validation_accuracy <= prev_val_acc and early_stop_counter != 25):
                 early_stop_counter += 1
+                if((rate - rate_decay) < 0):
+                    rate_decay *= 0.1
+                    rate -= rate_decay
+                else:
+                    rate -= rate_decay
                 print("Early stopping counter: {}".format(early_stop_counter))
+                print("Learning rate: {}".format(rate))
                 print()
                 continue
-            elif(validation_accuracy <= prev_val_acc and early_stop_counter == 4):
+            elif(validation_accuracy <= prev_val_acc and early_stop_counter == 25):
                 print("EARLY STOPPING...")
                 print()
                 break
@@ -264,9 +287,68 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
 #==============TESTING==============
 #===================================
 # TEST MODEL ACCURACY
-with tf.Session() as sess:
+gg = tf.Graph()
+with tf.Session(graph = gg) as sess:
     sess.run(tf.global_variables_initializer())
-    saver2 = tf.train.import_meta_graph('./test_net/model.meta')
-    saver2.restore(sess, "./test_net/model")
-    test_accuracy = evaluate(X_test, y_test)
-    print("Test Set Accuracy = {:.3f}".format(test_accuracy))
+    saver2 = tf.train.import_meta_graph("./models/recognize-6/model.meta")
+    saver2.restore(sess, "./models/recognize-6/model")
+
+    prediction = gg.get_tensor_by_name("prediction:0")
+    x = gg.get_tensor_by_name("input_data:0")
+    keep_prob = gg.get_tensor_by_name("keep_prob:0")
+
+
+    sess.run(prediction, feed_dict={x: X_test, keep_prob: 1.})
+
+    predictions = (prediction.eval(feed_dict={x: X_test, keep_prob: 1.}))
+
+    conf_mat = sess.run(tf.confusion_matrix(y_test, predictions, n_classes))
+
+    total = 0
+    true_sum = 0
+    false_sum = 0
+    recalls = []
+    precisions = []
+    recall = 0
+    precision = 0
+    for i in range(len(conf_mat)): # row (actual)
+        pred_pos = 0
+        act_pos = 0
+        for j in range(len(conf_mat[i])): # column of row (prediction)
+            total += conf_mat[i][j]
+            pred_pos += conf_mat[j][i]
+            if(i == j):
+                true_pos = conf_mat[i][j]
+                true_sum += true_pos
+                act_pos += true_pos
+            elif(i != j):
+                false_neg = conf_mat[i][j]
+                false_sum += false_neg
+                act_pos += false_neg
+        if(act_pos == 0):
+            act_pos = 1
+        if(pred_pos == 0):
+            pred_pos = 1
+        recalls.append((true_pos/act_pos))
+        precisions.append((true_pos/pred_pos))
+    for i in range(len(recalls)):
+        recall += recalls[i]
+        precision += precisions[i]
+
+    accuracy = (true_sum/total) * 100
+    error_rate = (false_sum/total) * 100
+    recall = (recall / len(recalls)) * 100
+    precision = (precision / len(precisions)) * 100
+
+    with open("recognition_results.txt", mode='a') as f:
+        f.write("Recognize-6 Network Results\n")
+        f.write("---\n")
+        f.write("Confusion matrix\n\n")
+        f.write("Predicted\n {} <-- Actual\n".format(conf_mat))
+        f.write("---\n")
+        f.write("Error rate: {:.2f}%\n".format(error_rate))
+        f.write("Recall: {:.2f}%\n".format(recall))
+        f.write("Precision: {:.2f}%\n".format(precision))
+        f.write("Network Accuracy: {:.2f}%\n".format(accuracy))
+        f.write("------------------------------------\n")
+        f.write("------------------------------------\n")

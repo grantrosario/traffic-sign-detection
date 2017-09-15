@@ -134,7 +134,7 @@ def LeNet(x):
     conv2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,8,16), mean = mu, stddev = sigma))
     conv2_b = tf.Variable(tf.zeros(16))
     conv2   = tf.nn.conv2d(conv1, conv2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv2_b
-    regularizers = tf.nn.l2_loss(conv2_W)
+    regularizers += tf.nn.l2_loss(conv2_W)
     # TODO: Activation.
     conv2 = tf.nn.relu(conv2)
 
@@ -145,7 +145,7 @@ def LeNet(x):
     conv3_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,16,32), mean = mu, stddev = sigma))
     conv3_b = tf.Variable(tf.zeros(32))
     conv3   = tf.nn.conv2d(conv2, conv3_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv3_b
-    regularizers = tf.nn.l2_loss(conv3_W)
+    regularizers += tf.nn.l2_loss(conv3_W)
     # TODO: Activation.
     conv3 = tf.nn.relu(conv3)
 
@@ -308,7 +308,7 @@ with tf.Session(graph=gg) as sess:
     recall = (recall / len(recalls)) * 100
     precision = (precision / len(precisions)) * 100
 
-    with open("Results.txt", mode='a') as f:
+    with open("detection_results.txt", mode='a') as f:
         f.write("Detect-4 Network Results\n")
         f.write("---\n")
         f.write("Confusion matrix\n\n")

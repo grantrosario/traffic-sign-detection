@@ -1,0 +1,74 @@
+--------------------
+Data Created
+--------------------
+--------------------
+Detect-4 Network Results
+---
+Confusion matrix
+
+Predicted
+ [[673   6]
+ [  7 470]] <-- Actual
+---
+Error rate: 1.12%
+Recall: 98.82%
+Precision: 98.86%
+Network Accuracy: 98.88%
+------------------------------------
+------------------------------------
+Detect-6 Network Results
+---
+Confusion matrix
+
+Predicted
+ [[669  10]
+ [  6 471]] <-- Actual
+---
+Error rate: 1.38%
+Recall: 98.63%
+Precision: 98.52%
+Network Accuracy: 98.62%
+------------------------------------
+------------------------------------
+Detect-9 Network Results
+---
+Confusion matrix
+
+Predicted
+ [[665  14]
+ [  7 470]] <-- Actual
+---
+Error rate: 1.82%
+Recall: 98.24%
+Precision: 98.03%
+Network Accuracy: 98.18%
+------------------------------------
+------------------------------------
+Detect-9-1x1 Network Results
+---
+Confusion matrix
+
+Predicted
+ [[675   4]
+ [  4 473]] <-- Actual
+---
+Error rate: 0.69%
+Recall: 99.29%
+Precision: 99.29%
+Network Accuracy: 99.31%
+------------------------------------
+------------------------------------
+Detect-11 Network Results
+---
+Confusion matrix
+
+Predicted
+ [[677   2]
+ [  1 476]] <-- Actual
+---
+Error rate: 0.26%
+Recall: 99.75%
+Precision: 99.72%
+Network Accuracy: 99.74%
+------------------------------------
+------------------------------------
