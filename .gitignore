@@ -1,7 +1,6 @@
 /0_not_sign/*
 /1_sign/*
+/german_sign/*
 /sign_pics/*
-/detection_net/*
-/test_net/*
-/color_net/*
 /models/*
+german_recognition_data.p

@@ -119,9 +119,9 @@ class DataMaker:
                 signFeatures, y = shuffle(signFeatures, y)
 
 
-                xTrain, xTest, yTrain, yTest = trainTestSplit(signFeatures, y, test_size=0.2, random_state=42)
+                xTrain, xTest, yTrain, yTest = trainTestSplit(signFeatures, y, test_size=0.4, random_state=42)
 
-                xTrain, xVal, yTrain, yVal = trainTestSplit(xTrain, yTrain, test_size=0.2, random_state=42)
+                xTrain, xVal, yTrain, yVal = trainTestSplit(xTrain, yTrain, test_size=0.4, random_state=42)
 
                 detectionData = {'xTrain': xTrain,
                                  'xValidation': xVal,
@@ -186,9 +186,9 @@ class DataMaker:
                 signFeatures, signLabels = shuffle(signFeatures, signLabels)
 
 
-                xTrain, xTest, yTrain, yTest = trainTestSplit(signFeatures, signLabels, test_size=0.2, random_state=42)
+                xTrain, xTest, yTrain, yTest = trainTestSplit(signFeatures, signLabels, test_size=0.4, random_state=42)
 
-                xTrain, xVal, yTrain, yVal = trainTestSplit(xTrain, yTrain, test_size=0.2, random_state=42)
+                xTrain, xVal, yTrain, yVal = trainTestSplit(xTrain, yTrain, test_size=0.4, random_state=42)
 
 
                 recognitionData = {'xTrain': xTrain, 'xValidation': xVal, 'xTest': xTest,

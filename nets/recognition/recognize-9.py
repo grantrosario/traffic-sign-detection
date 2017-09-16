@@ -156,14 +156,60 @@ def LeNet(x):
     # TODO: Activation.
     conv3 = tf.nn.relu(conv3)
 
+    # TODO: Layer 1: Convolutional. Input = 16x16x16. Output = 16x16x32.
+    conv3_2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,32,32), mean = mu, stddev = sigma))
+    conv3_2_b = tf.Variable(tf.zeros(32))
+    conv3   = tf.nn.conv2d(conv3, conv3_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv3_2_b
+    regularizers = tf.nn.l2_loss(conv3_2_W)
+    # TODO: Activation.
+    conv3 = tf.nn.relu(conv3)
+
     # TODO: Pooling. Input = 16x16x32. Output = 8x8x32.
     conv3 = tf.nn.max_pool(conv3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
-    # TODO: Flatten. Input = 8x8x32. Output = 2048.
-    fc0   = flatten(conv3)
+    # TODO: Layer 2: Convolutional. Output = 8x8x64.
+    conv4_W = tf.Variable(tf.truncated_normal(shape=(ft_sz, ft_sz, 32, 64), mean = mu, stddev = sigma))
+    conv4_b = tf.Variable(tf.zeros(64))
+    conv4   = tf.nn.conv2d(conv3, conv4_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv4_b
+    regularizers += tf.nn.l2_loss(conv4_W)
+    # TODO: Activation.
+    conv4 = tf.nn.relu(conv4)
+
+    # TODO: Layer 1: Convolutional. Input = 8x8x32. Output = 8x8x64.
+    conv4_2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,64,64), mean = mu, stddev = sigma))
+    conv4_2_b = tf.Variable(tf.zeros(64))
+    conv4   = tf.nn.conv2d(conv4, conv4_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv4_2_b
+    regularizers = tf.nn.l2_loss(conv4_2_W)
+    # TODO: Activation.
+    conv4 = tf.nn.relu(conv4)
+
+    # TODO: Pooling. Input = 8x8x64. Output = 4x4x64.
+    conv4 = tf.nn.max_pool(conv4, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
+
+    # TODO: Layer 2: Convolutional. Output = 4x4x128.
+    conv5_W = tf.Variable(tf.truncated_normal(shape=(ft_sz, ft_sz, 64, 128), mean = mu, stddev = sigma))
+    conv5_b = tf.Variable(tf.zeros(128))
+    conv5   = tf.nn.conv2d(conv4, conv5_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv5_b
+    regularizers += tf.nn.l2_loss(conv5_W)
+    # TODO: Activation.
+    conv5 = tf.nn.relu(conv5)
+
+    # TODO: Layer 1: Convolutional. Input = 4x4x64. Output = 4x4x128.
+    conv5_2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,128,128), mean = mu, stddev = sigma))
+    conv5_2_b = tf.Variable(tf.zeros(128))
+    conv5   = tf.nn.conv2d(conv5, conv5_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv5_2_b
+    regularizers = tf.nn.l2_loss(conv5_2_W)
+    # TODO: Activation.
+    conv5 = tf.nn.relu(conv5)
+
+    # TODO: Pooling. Input = 4x4x128. Output = 2x2x128.
+    conv5 = tf.nn.max_pool(conv5, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
+
+    # TODO: Flatten. Input = 2x2x128. Output = 512.
+    fc0   = flatten(conv5)
 
     # TODO: Layer 3: Fully Connected. Input = 2048. Output = 120.
-    fc1_W  = tf.Variable(tf.truncated_normal(shape=(2048, 43), mean = mu, stddev = sigma))
+    fc1_W  = tf.Variable(tf.truncated_normal(shape=(512, 43), mean = mu, stddev = sigma))
     fc1_b  = tf.Variable(tf.zeros(43))
     regularizers += tf.nn.l2_loss(fc1_W)
     logits = tf.matmul(fc0, fc1_W) + fc1_b
@@ -207,60 +253,58 @@ def evaluate(X_data, y_data):
 ### Train the model.
 ### Calculate and report the accuracy on the training and validation set.
 ### FEATURES AND LABELS
-if((input('Would you like to train? (y/n): ')) == 'y'):
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    num_examples = len(X_train)
 
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        num_examples = len(X_train)
+    prev_val_acc = 0
+    early_stop_counter = 0
+    rate_decay = 0.0001
+    print()
+    print("Training...")
+    for i in range(EPOCHS):
+        X_train, y_train = shuffle(X_train, y_train)
+        for offset in tqdm(range(0, num_examples, BATCH_SIZE)):
+            end = offset + BATCH_SIZE
+            batch_x, batch_y = X_train[offset:end], y_train[offset:end]
+            sess.run(training_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 0.5})
 
-        prev_val_acc = 0
-        early_stop_counter = 0
-        rate_decay = 0.0001
         print()
-        print("Training...")
-        for i in range(EPOCHS):
-            X_train, y_train = shuffle(X_train, y_train)
-            for offset in tqdm(range(0, num_examples, BATCH_SIZE)):
-                end = offset + BATCH_SIZE
-                batch_x, batch_y = X_train[offset:end], y_train[offset:end]
-                sess.run(training_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 0.5})
+        print("Evaluating accuracy...")
+        validation_accuracy = evaluate(X_valid, y_valid)
+        training_accuracy = evaluate(X_train, y_train)
+        print("EPOCH {} ...".format(i+1))
+        print("Validation Accuracy = {:.3f}".format(validation_accuracy))
+        print("Training Accuracy = {:.3f}".format(training_accuracy))
 
+        #EARLY STOPPING
+        if(validation_accuracy > prev_val_acc):
+            early_stop_counter = 0
+            prev_val_acc = validation_accuracy
+            print("Early stopping counter: {}".format(early_stop_counter))
+            print("Learning rate: {}".format(rate))
+            print("Saving model...")
+            saver.save(sess, './models/recognize-9/model')
             print()
-            print("Evaluating accuracy...")
-            validation_accuracy = evaluate(X_valid, y_valid)
-            training_accuracy = evaluate(X_train, y_train)
-            print("EPOCH {} ...".format(i+1))
-            print("Validation Accuracy = {:.3f}".format(validation_accuracy))
-            print("Training Accuracy = {:.3f}".format(training_accuracy))
+            continue
+        elif(validation_accuracy <= prev_val_acc and early_stop_counter != 25):
+            early_stop_counter += 1
+            if((rate - rate_decay) < 0):
+                rate_decay *= 0.1
+                rate -= rate_decay
+            else:
+                rate -= rate_decay
+            print("Early stopping counter: {}".format(early_stop_counter))
+            print("Learning rate: {}".format(rate))
+            print()
+            continue
+        elif(validation_accuracy <= prev_val_acc and early_stop_counter == 25):
+            print("EARLY STOPPING...")
+            print()
+            break
 
-            #EARLY STOPPING
-            if(validation_accuracy > prev_val_acc):
-                early_stop_counter = 0
-                prev_val_acc = validation_accuracy
-                print("Early stopping counter: {}".format(early_stop_counter))
-                print("Learning rate: {}".format(rate))
-                print("Saving model...")
-                saver.save(sess, './models/recognize-4/model')
-                print()
-                continue
-            elif(validation_accuracy <= prev_val_acc and early_stop_counter != 25):
-                early_stop_counter += 1
-                if((rate - rate_decay) < 0):
-                    rate_decay *= 0.1
-                    rate -= rate_decay
-                else:
-                    rate -= rate_decay
-                print("Early stopping counter: {}".format(early_stop_counter))
-                print("Learning rate: {}".format(rate))
-                print()
-                continue
-            elif(validation_accuracy <= prev_val_acc and early_stop_counter == 25):
-                print("EARLY STOPPING...")
-                print()
-                break
-
-        print("Model saved")
-        print()
+    print("Model saved")
+    print()
 
 #==============TESTING==============
 #===================================
@@ -268,8 +312,8 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
 gg = tf.Graph()
 with tf.Session(graph = gg) as sess:
     sess.run(tf.global_variables_initializer())
-    saver2 = tf.train.import_meta_graph("./models/recognize-4/model.meta")
-    saver2.restore(sess, "./models/recognize-4/model")
+    saver2 = tf.train.import_meta_graph("./models/recognize-9/model.meta")
+    saver2.restore(sess, "./models/recognize-9/model")
 
     prediction = gg.get_tensor_by_name("prediction:0")
     x = gg.get_tensor_by_name("input_data:0")
@@ -319,7 +363,7 @@ with tf.Session(graph = gg) as sess:
     precision = (precision / len(precisions)) * 100
 
     with open("recognition_results.txt", mode='a') as f:
-        f.write("Recognize-4 Network Results\n")
+        f.write("Recognize-9 Network Results\n")
         f.write("---\n")
         f.write("Confusion matrix\n\n")
         f.write("Predicted\n {} <-- Actual\n".format(conf_mat))

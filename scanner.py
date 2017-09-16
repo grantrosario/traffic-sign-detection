@@ -251,7 +251,6 @@ class Scanner():
             reader = csv.DictReader(csvfile)
             for row in reader:
                 sign_truths[row['label']] = row['name']
-        #sign_truths = {0: }
         font = cv2.FONT_HERSHEY_DUPLEX
         for idx in range(0, len(textboxes)):
             text = "{}".format(sign_truths[str(recognitions[idx])])
