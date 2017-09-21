@@ -4,28 +4,22 @@ import cv2
 from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+import tensorflow as tf
 import glob
 import random
 import time
 import csv
+import os
 import datetime
 from tqdm import tqdm
-from collections import deque
-from skimage.feature import hog
-from sklearn.model_selection import train_test_split, GridSearchCV
-from scipy.misc import imread, imresize
-from sklearn.preprocessing import StandardScaler
-from sklearn.svm import LinearSVC
+from scipy.misc import imread
 from scipy.ndimage.measurements import label
 from skimage.exposure import equalize_hist
 from skimage.io import imsave
 
-import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
-import tensorflow as tf
 
 IMG_SIZE = 64
-
 
 class Scanner():
 
