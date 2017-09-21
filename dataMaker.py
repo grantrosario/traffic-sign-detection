@@ -15,6 +15,7 @@ class DataMaker:
         self.notSignFiles = glob.glob('{}*.png'.format(self.notSignFolder))
         self.signFolder = signDirPath
         self.signFiles = glob.glob('{}*/*.png'.format(self.signFolder))
+        self.testSigns = glob.glob('test_data/signs/*/*.png')
 
 
     def sizer(self, pathList, width, height):
@@ -30,36 +31,6 @@ class DataMaker:
             img = imresize(img, (width, height))
             imsave(path, img)
 
-    def getMeans(self, pathList, dataType):
-        r_values = []
-        g_values = []
-        b_values = []
-        count = 0
-        for path in pathList:
-            count += 1
-            img = cv2.imread(path)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            for r_array in img[:,:,0]:
-                for r_val in r_array:
-                    r_values.append(r_val)
-            for g_array in img[:,:,1]:
-                for g_val in g_array:
-                    g_values.append(g_val)
-            for b_array in img[:,:,2]:
-                for b_val in b_array:
-                    b_values.append(b_val)
-        if(dataType == "detection"):
-            print("{} detection images: means of [r,g,b] = [{}, {}, {}]".format(count,
-                                                                               (sum(r_values)/len(r_values)),
-                                                                               (sum(g_values)/len(g_values)),
-                                                                               (sum(b_values)/len(b_values))))
-        if(dataType == "recognition"):
-            print("{} recognition images: means of [r,g,b] = [{}, {}, {}]".format(count,
-                                                                                 (sum(r_values)/len(r_values)),
-                                                                                 (sum(g_values)/len(g_values)),
-                                                                                 (sum(b_values)/len(b_values))))
-
-
 
     def processData(self):
         """
@@ -71,14 +42,10 @@ class DataMaker:
             files.append(f)
         for f in self.notSignFiles:
             files.append(f)
+        for f in self.testSigns:
+            files.append(f)
         if((input('Do images need resized? (y/n): ')) == 'y'):
             self.sizer(files, 64, 64)
-        if((input('Calculate new means? (y/n): ')) == 'y'):
-            dataType = input('Detection or Recognition? (d/r): ')
-            if(dataType == 'd'):
-                self.getMeans(files, "detection")
-            elif(dataType == 'r'):
-                self.getMeans(files, "recognition")
 
 
     def getDetectionData(self):
@@ -159,6 +126,7 @@ class DataMaker:
             print("\nAttempting to generate new recognition data file...\n")
 
             signFolder = '1_sign/'
+            testSignFolder = 'test_data/signs/'
 
             if not os.path.isdir(signFolder):
                 print("No samples found.\nExiting.")
@@ -167,6 +135,10 @@ class DataMaker:
                 signLabels = []
                 uniqueSignFolders = glob.glob('{}*/'.format(signFolder))
                 uniqueSignPaths = glob.glob('{}*/*.png'.format(signFolder))
+
+                testLabels = []
+                uniqueTestFolders = glob.glob('{}*/'.format(testSignFolder))
+                uniqueTestPaths = glob.glob('{}*/*.png'.format(testSignFolder))
 
                 for path in uniqueSignPaths:
                     if (path == uniqueSignPaths[0]):
@@ -183,12 +155,29 @@ class DataMaker:
                         newArray = np.array([img])
                         signFeatures = np.concatenate([signFeatures, newArray])
 
+                for path in uniqueTestPaths:
+                    if (path == uniqueTestPaths[0]):
+                        testLabel = int((path.split("/")[-1]).split("_")[0])
+                        testLabels.append(testLabel)
+                        img = cv2.imread(path)
+                        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                        testFeatures = np.array([img])
+                    else:
+                        testLabel = int((path.split("/")[-1]).split("_")[0])
+                        testLabels.append(testLabel)
+                        img = cv2.imread(path)
+                        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                        newArray = np.array([img])
+                        testFeatures = np.concatenate([testFeatures, newArray])
+
+
                 signFeatures, signLabels = shuffle(signFeatures, signLabels)
+                testFeatures, testLabels = shuffle(testFeatures, testLabels)
 
+                xTrain, yTrain = signFeatures, signLabels
+                xTest, yTest = testFeatures, testLabels
 
-                xTrain, xTest, yTrain, yTest = trainTestSplit(signFeatures, signLabels, test_size=0.4, random_state=42)
-
-                xTrain, xVal, yTrain, yVal = trainTestSplit(xTrain, yTrain, test_size=0.4, random_state=42)
+                xTrain, xVal, yTrain, yVal = trainTestSplit(xTrain, yTrain, test_size=0.2, random_state=42)
 
 
                 recognitionData = {'xTrain': xTrain, 'xValidation': xVal, 'xTest': xTest,
@@ -208,18 +197,21 @@ def main():
     """
     clean = DataMaker('0_not_sign/', '1_sign/')
     clean.processData()
-    detectionData = clean.getDetectionData()
-    recognitionData = clean.getRecognitionData()
-    with open("detection_results.txt", mode='w') as f:
-        f.write("--------------------\n")
-        f.write("Data Created\n")
-        f.write("--------------------\n")
-        f.write("--------------------\n")
+    # detectionData = clean.getDetectionData()
+    # with open("detection_results.txt", mode='w') as f:
+    #     f.write("--------------------\n")
+    #     f.write("Data Created\n")
+    #     f.write("--------------------\n")
+    #     f.write("--------------------\n")
 
+    recognitionData = clean.getRecognitionData()
     with open("recognition_results.txt", mode='w') as f:
         f.write("--------------------\n")
         f.write("Data Created\n")
-        f.write("--------------------\n")
+        f.write("---\n")
+        f.write("{} training images\n".format(len(recognitionData['xTrain'])))
+        f.write("{} validation images\n".format(len(recognitionData['xValidation'])))
+        f.write("{} test images\n".format(len(recognitionData['xTest'])))
         f.write("--------------------\n")
 
 

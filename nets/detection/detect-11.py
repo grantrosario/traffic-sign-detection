@@ -71,14 +71,6 @@ print("Number of classes =", n_classes)
 #========PREPROCESSING==============
 #===================================
 def preprocess(X):
-    # t = []
-    # for i in range(0, len(X)):
-    #     gray = cv2.cvtColor(X[i], cv2.COLOR_RGB2GRAY)
-    #     blur = cv2.GaussianBlur(gray, (5,5), 20.0)
-    #     image = cv2.addWeighted(gray, 2, blur, -1, 0)
-    #     image = cv2.equalizeHist(image)
-    #     image = equalize_hist(image)
-    #     t.append(image)
     X = np.reshape(X, (-1, 64, 64, 3))
     print("Image Shape: {}".format(X.shape))
     return X

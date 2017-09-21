@@ -14,8 +14,6 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import tensorflow as tf
 
-# np.set_printoptions(threshold=sys.maxsize)
-
 data_file = "recognition_data.p"
 
 with open(data_file, mode='rb') as f:
@@ -113,8 +111,6 @@ X_train, y_train = shuffle(X_train, y_train)
 
 ### Define your architecture here.
 ### Feel free to use as many code cells as needed.
-import tensorflow as tf
-from tensorflow.contrib.layers import flatten
 
 EPOCHS = 100
 BATCH_SIZE = 64

@@ -16,7 +16,7 @@ import tensorflow as tf
 
 # np.set_printoptions(threshold=sys.maxsize)
 
-data_file = "recognition_data.p"
+data_file = "german_recognition_data.p"
 
 with open(data_file, mode='rb') as f:
     data = pickle.load(f)
@@ -262,7 +262,7 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
                 print("Early stopping counter: {}".format(early_stop_counter))
                 print("Learning rate: {}".format(rate))
                 print("Saving model...")
-                saver.save(sess, './models/recognize-6/model')
+                saver.save(sess, './models/german_recognize-6/model')
                 print()
                 continue
             elif(validation_accuracy <= prev_val_acc and early_stop_counter != 25):
@@ -290,8 +290,8 @@ if((input('Would you like to train? (y/n): ')) == 'y'):
 gg = tf.Graph()
 with tf.Session(graph = gg) as sess:
     sess.run(tf.global_variables_initializer())
-    saver2 = tf.train.import_meta_graph("./models/recognize-6/model.meta")
-    saver2.restore(sess, "./models/recognize-6/model")
+    saver2 = tf.train.import_meta_graph("./models/german_recognize-6/model.meta")
+    saver2.restore(sess, "./models/german_recognize-6/model")
 
     prediction = gg.get_tensor_by_name("prediction:0")
     x = gg.get_tensor_by_name("input_data:0")
@@ -340,7 +340,7 @@ with tf.Session(graph = gg) as sess:
     recall = (recall / len(recalls)) * 100
     precision = (precision / len(precisions)) * 100
 
-    with open("recognition_results.txt", mode='a') as f:
+    with open("german_recognition_results.txt", mode='a') as f:
         f.write("Recognize-6 Network Results\n")
         f.write("---\n")
         f.write("Confusion matrix\n\n")

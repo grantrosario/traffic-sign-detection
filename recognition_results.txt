@@ -1,24 +1,27 @@
 --------------------
 Data Created
---------------------
+---
+1793 training images
+449 validation images
+571 test images
 --------------------
 Recognize-4 Network Results
 ---
 Confusion matrix
 
 Predicted
- [[39  0  0 ...,  0  0  0]
- [ 0  3  0 ...,  0  0  0]
- [ 0  0 18 ...,  0  0  0]
+ [[26  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
  ..., 
  [ 0  0  0 ...,  0  0  0]
- [ 0  0  0 ...,  0 47  0]
- [ 0  0  0 ...,  0  0 49]] <-- Actual
+ [ 0  0  0 ...,  0 23  0]
+ [ 0  0  0 ...,  0  0  9]] <-- Actual
 ---
-Error rate: 8.13%
-Recall: 85.32%
-Precision: 89.07%
-Network Accuracy: 91.87%
+Error rate: 7.83%
+Recall: 50.35%
+Precision: 52.90%
+Network Accuracy: 92.17%
 ------------------------------------
 ------------------------------------
 Recognize-6 Network Results
@@ -26,18 +29,18 @@ Recognize-6 Network Results
 Confusion matrix
 
 Predicted
- [[37  0  0 ...,  0  0  0]
- [ 0  3  0 ...,  0  0  0]
- [ 0  0 18 ...,  0  0  0]
+ [[26  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
  ..., 
  [ 0  0  0 ...,  0  0  0]
- [ 0  0  0 ...,  0 47  0]
- [ 0  0  0 ...,  0  0 49]] <-- Actual
+ [ 0  0  0 ...,  0 23  0]
+ [ 0  0  0 ...,  0  0  9]] <-- Actual
 ---
-Error rate: 5.84%
-Recall: 89.11%
-Precision: 91.54%
-Network Accuracy: 94.16%
+Error rate: 7.29%
+Recall: 51.41%
+Precision: 51.17%
+Network Accuracy: 92.71%
 ------------------------------------
 ------------------------------------
 Recognize-9 Network Results
@@ -45,18 +48,18 @@ Recognize-9 Network Results
 Confusion matrix
 
 Predicted
- [[38  0  0 ...,  0  0  0]
- [ 0  3  0 ...,  0  0  0]
- [ 0  0 18 ...,  0  0  0]
+ [[26  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
  ..., 
  [ 0  0  0 ...,  0  0  0]
- [ 0  0  0 ...,  0 47  0]
- [ 0  0  1 ...,  0  0 48]] <-- Actual
+ [ 0  0  0 ...,  0 23  0]
+ [ 0  0  0 ...,  0  0  9]] <-- Actual
 ---
-Error rate: 7.56%
-Recall: 87.32%
-Precision: 89.25%
-Network Accuracy: 92.44%
+Error rate: 4.19%
+Recall: 53.29%
+Precision: 54.82%
+Network Accuracy: 95.81%
 ------------------------------------
 ------------------------------------
 Recognize-9-1x1 Network Results
@@ -64,18 +67,18 @@ Recognize-9-1x1 Network Results
 Confusion matrix
 
 Predicted
- [[35  0  0 ...,  0  0  0]
- [ 0  3  0 ...,  0  0  0]
- [ 0  0 17 ...,  0  0  1]
+ [[26  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
  ..., 
  [ 0  0  0 ...,  0  0  0]
- [ 0  0  0 ...,  0 47  0]
- [ 0  0  0 ...,  0  0 49]] <-- Actual
+ [ 0  0  0 ...,  0 23  0]
+ [ 1  0  0 ...,  0  0  4]] <-- Actual
 ---
-Error rate: 9.62%
-Recall: 85.20%
-Precision: 87.93%
-Network Accuracy: 90.38%
+Error rate: 6.92%
+Recall: 50.53%
+Precision: 52.68%
+Network Accuracy: 93.08%
 ------------------------------------
 ------------------------------------
 Recognize-11 Network Results
@@ -83,17 +86,36 @@ Recognize-11 Network Results
 Confusion matrix
 
 Predicted
- [[38  0  0 ...,  0  0  0]
- [ 0  3  0 ...,  0  0  0]
- [ 0  0 18 ...,  0  0  0]
+ [[26  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
  ..., 
  [ 0  0  0 ...,  0  0  0]
- [ 0  0  0 ...,  0 47  0]
- [ 0  0  1 ...,  0  0 48]] <-- Actual
+ [ 0  0  0 ...,  0 23  0]
+ [ 0  0  0 ...,  0  0  9]] <-- Actual
 ---
-Error rate: 5.84%
-Recall: 88.64%
-Precision: 91.42%
-Network Accuracy: 94.16%
+Error rate: 8.56%
+Recall: 51.24%
+Precision: 52.66%
+Network Accuracy: 91.44%
+------------------------------------
+------------------------------------
+Voting Results
+---
+Confusion matrix
+
+Predicted
+ [[26  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ ..., 
+ [ 0  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0 23  0]
+ [ 0  0  0 ...,  0  0  9]] <-- Actual
+---
+Error rate: 4.19%
+Recall: 53.08%
+Precision: 54.40%
+Network Accuracy: 95.81%
 ------------------------------------
 ------------------------------------

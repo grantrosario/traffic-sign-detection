@@ -95,6 +95,7 @@ class Scanner():
             endy = bbox[1][1]
             images.append(imcopy[starty:endy, startx:endx])
 
+        print("predicting {} images...".format(len(images)))
         predictions['model1'] = self.detect(images, 'models/detect-4/', tf.Graph())
         predictions['model2'] = self.detect(images, 'models/detect-6/', tf.Graph())
         predictions['model3'] = self.detect(images, 'models/detect-9/', tf.Graph())
@@ -131,18 +132,6 @@ class Scanner():
             cv2.rectangle(imcopy, (startx, starty), (endx, endy), (0,0,255), 5)
         plt.imshow(imcopy)
         plt.show()
-
-
-
-    def add_heat(self, heatmap, bbox_list):
-        # Iterate through list of bboxes
-        for box in bbox_list:
-            # Add += 1 for all pixels inside each bbox
-            # Assuming each "box" takes the form ((x1, y1), (x2, y2))
-            heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
-
-        # Return updated heatmap
-        return heatmap
 
     def draw_labeled_boxes(self, img, labels):
         signs = []
@@ -188,7 +177,6 @@ class Scanner():
         my_images = np.asarray(my_images)
         my_images = np.reshape(my_images, (-1, IMG_SIZE, IMG_SIZE, 3))
 
-        print("predicting {} images...".format(len(images)))
         with tf.Session(graph = graph) as sess:
             saver = tf.train.import_meta_graph('{}model.meta'.format(model_path))
             saver.restore(sess, tf.train.latest_checkpoint('{}.'.format(model_path)))
@@ -207,7 +195,7 @@ class Scanner():
             #print("predictions assigned...")
         return predictions
 
-    def recognize(self, images):
+    def recognize(self, images, model_path, graph):
 
         my_images = []
 
@@ -224,17 +212,16 @@ class Scanner():
         my_images = np.asarray(my_images)
         my_images = np.reshape(my_images, (-1, IMG_SIZE, IMG_SIZE, 1))
 
-        print("recognizing {} sign(s)...".format(len(images)))
-        with tf.Session(graph = self.h) as sess:
-            saver = tf.train.import_meta_graph('test_net/model.meta')
-            saver.restore(sess, tf.train.latest_checkpoint('test_net/.'))
+        with tf.Session(graph = graph) as sess:
+            saver = tf.train.import_meta_graph('{}model.meta'.format(model_path))
+            saver.restore(sess, tf.train.latest_checkpoint('{}.'.format(model_path)))
 
             #print("Model restored...")
-            x = self.h.get_tensor_by_name("input_data:0")
+            x = graph.get_tensor_by_name("input_data:0")
             #print("x restored...")
-            keep_prob = self.h.get_tensor_by_name("keep_prob:0")
+            keep_prob = graph.get_tensor_by_name("keep_prob:0")
             #print("keep_prob...")
-            prediction = self.h.get_tensor_by_name("prediction:0")
+            prediction = graph.get_tensor_by_name("prediction:0")
             #print("prediction op restored...")
 
 
@@ -242,8 +229,29 @@ class Scanner():
             #print("prediction op finished...")
             predictions = (prediction.eval(feed_dict={x: my_images, keep_prob: 1.}))
             #print("predictions assigned...")
-        print("DONE RECOGNIZING")
         return predictions
+
+    def get_recognitions(self, signs):
+        final_recognitions = []
+        recognitions = {}
+        print("recognizing {} sign(s)...".format(len(signs)))
+        recognitions['model1'] = scan.recognize(signs, "models/recognize-4/", tf.Graph())
+        recognitions['model2'] = scan.recognize(signs, "models/recognize-6/", tf.Graph())
+        recognitions['model3'] = scan.recognize(signs, "models/recognize-9/", tf.Graph())
+        recognitions['model4'] = scan.recognize(signs, "models/recognize-9-1x1/", tf.Graph())
+        recognitions['model5'] = scan.recognize(signs, "models/recognize-11/", tf.Graph())
+
+        for num in range(len(recognitions['model1'])):
+            vote = {}
+            for model in recognitions:
+                vote[str(recognitions[model][num])] = 0
+            for model in recognitions:
+                vote[str(recognitions[model][num])] += 1
+
+            max_vote = max(vote.values())
+            winner = [k for k, v in vote.items() if v == max_vote]
+            final_recognitions.append(winner[0])
+        return final_recognitions
 
     def draw_sign(self, img, textboxes, recognitions):
         sign_truths = {}
@@ -254,7 +262,8 @@ class Scanner():
         font = cv2.FONT_HERSHEY_DUPLEX
         for idx in range(0, len(textboxes)):
             text = "{}".format(sign_truths[str(recognitions[idx])])
-            cv2.putText(img, text, textboxes[idx], font, 1, (100, 255, 100), 2, cv2.LINE_AA)
+            cv2.putText(img, text, textboxes[idx], font, 2, (100, 255, 100), 2, cv2.LINE_AA)
+            print("sign {} recognized as {}".format(idx+1, sign_truths[str(recognitions[idx])]))
 
 
 
@@ -290,7 +299,7 @@ scan = Scanner()
 # img = Image.open("test_imgs/test3.jpg")
 # img = img.rotate(180)
 # img.save("test_imgs/test3.jpg")
-img = cv2.imread("test_imgs/test1.jpg")
+img = cv2.imread("test_imgs/test2.jpg")
 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 img = cv2.resize(img, (4032, 3024))
 
@@ -304,13 +313,14 @@ heat2 = scan.apply_threshold(heatmap, 2)
 
 labels = label(heat2)
 
-plt.imshow(labels[0])
-plt.show()
+# plt.imshow(labels[0])
+# plt.show()
 
 draw_img, signs, textboxes = scan.draw_labeled_boxes(np.copy(img), labels)
-recognitions = scan.recognize(signs)
+
+recognitions = scan.get_recognitions(signs)
 
 scan.draw_sign(draw_img, textboxes, recognitions)
-# plt.imshow(draw_img)
-# plt.title(recognitions[0])
-# plt.show()
+plt.imshow(draw_img)
+plt.title(recognitions[0])
+plt.show()
