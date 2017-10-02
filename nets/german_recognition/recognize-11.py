@@ -48,28 +48,28 @@ print("Number of testing examples =", n_test)
 print("Image data shape =", image_shape)
 print("Number of classes =", n_classes)
 
-# generate 5 random data points and show images
-fig, axs = plt.subplots(1, 5, figsize=(15, 6))  # create plot boxes for images
-fig.subplots_adjust(hspace = .2, wspace=.1)     # adjust height and width of spacing around boxes
+# # generate 5 random data points and show images
+# fig, axs = plt.subplots(1, 5, figsize=(15, 6))  # create plot boxes for images
+# fig.subplots_adjust(hspace = .2, wspace=.1)     # adjust height and width of spacing around boxes
 # axs = axs.ravel(order='C')                      # flatten array into 1-D array
-for i in range(5):
-    index = random.randint(0, len(X_train))
-    image = X_train[index]
-    axs[i].axis('off')
-    axs[i].imshow(image)
-    axs[i].set_title(y_train[index])
-#plt.show()
-
-#Plot histogram of training labels used
-plt.figure(figsize=(12, 4))
-hist, bins = np.histogram(y_train, bins = n_classes)
-width = 0.7 * (bins[1] - bins[0]) / 2
-center = (bins[:-1] + bins[1:]) / 2
-barlist = plt.bar(center, hist, align = 'center', width=width, color='royalblue')
-plt.title("Frequency of labels used")
-plt.xlabel("Label number")
-plt.ylabel("Number of images")
-#plt.show()
+# for i in range(5):
+#     index = random.randint(0, len(X_train))
+#     image = X_train[index]
+#     axs[i].axis('off')
+#     axs[i].imshow(image)
+#     axs[i].set_title(y_train[index])
+# plt.show()
+#
+# #Plot histogram of training labels used
+# plt.figure(figsize=(12, 4))
+# hist, bins = np.histogram(y_train, bins = n_classes)
+# width = 0.7 * (bins[1] - bins[0]) / 2
+# center = (bins[:-1] + bins[1:]) / 2
+# barlist = plt.bar(center, hist, align = 'center', width=width, color='royalblue')
+# plt.title("Frequency of labels used")
+# plt.xlabel("Label number")
+# plt.ylabel("Number of images")
+# plt.show()
 
 #========PREPROCESSING==============
 #===================================
@@ -125,6 +125,7 @@ def LeNet(x):
     mu = 0
     sigma = 0.1
     ft_sz = 3
+    weights = []
 
     # TODO: Layer 1: Convolutional. Input = 64x64x1. Output = 64x64x8.
     conv1_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,1,8), mean = mu, stddev = sigma))
@@ -133,6 +134,7 @@ def LeNet(x):
     regularizers = tf.nn.l2_loss(conv1_W)
     # TODO: Activation.
     conv1 = tf.nn.relu(conv1)
+    weights.append(conv1_W)
 
     conv1_2_W = tf.Variable(tf.truncated_normal(shape=(3,3,8,8), mean = mu, stddev = sigma))
     conv1_2_b = tf.Variable(tf.zeros(8))
@@ -140,6 +142,7 @@ def LeNet(x):
     regularizers = tf.nn.l2_loss(conv1_2_W)
     # TODO: Activation.
     conv1 = tf.nn.relu(conv1)
+    weights.append(conv1_2_W)
 
     # TODO: Pooling. Input = 64x64x8. Output = 32x32x8.
     conv1 = tf.nn.max_pool(conv1, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
@@ -151,6 +154,7 @@ def LeNet(x):
     regularizers += tf.nn.l2_loss(conv2_W)
     # TODO: Activation.
     conv2 = tf.nn.relu(conv2)
+    weights.append(conv2_W)
 
     conv2_2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,16,16), mean = mu, stddev = sigma))
     conv2_2_b = tf.Variable(tf.zeros(16))
@@ -158,6 +162,7 @@ def LeNet(x):
     regularizers = tf.nn.l2_loss(conv2_2_W)
     # TODO: Activation.
     conv2 = tf.nn.relu(conv2)
+    weights.append(conv2_2_W)
 
     # TODO: Pooling. Input = 32x32x16. Output = 16x16x16.
     conv2 = tf.nn.max_pool(conv2, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
@@ -169,6 +174,7 @@ def LeNet(x):
     regularizers += tf.nn.l2_loss(conv3_W)
     # TODO: Activation.
     conv3 = tf.nn.relu(conv3)
+    weights.append(conv3_W)
 
     # TODO: Layer 1: Convolutional. Input = 16x16x16. Output = 16x16x32.
     conv3_2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,32,32), mean = mu, stddev = sigma))
@@ -177,6 +183,7 @@ def LeNet(x):
     regularizers = tf.nn.l2_loss(conv3_2_W)
     # TODO: Activation.
     conv3 = tf.nn.relu(conv3)
+    weights.append(conv3_2_W)
 
     # TODO: Pooling. Input = 16x16x32. Output = 8x8x32.
     conv3 = tf.nn.max_pool(conv3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
@@ -188,6 +195,7 @@ def LeNet(x):
     regularizers += tf.nn.l2_loss(conv4_W)
     # TODO: Activation.
     conv4 = tf.nn.relu(conv4)
+    weights.append(conv4_W)
 
     # TODO: Layer 1: Convolutional. Input = 8x8x32. Output = 8x8x64.
     conv4_2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,64,64), mean = mu, stddev = sigma))
@@ -196,6 +204,7 @@ def LeNet(x):
     regularizers = tf.nn.l2_loss(conv4_2_W)
     # TODO: Activation.
     conv4 = tf.nn.relu(conv4)
+    weights.append(conv4_2_W)
 
     # TODO: Pooling. Input = 8x8x64. Output = 4x4x64.
     conv4 = tf.nn.max_pool(conv4, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
@@ -207,6 +216,7 @@ def LeNet(x):
     regularizers += tf.nn.l2_loss(conv5_W)
     # TODO: Activation.
     conv5 = tf.nn.relu(conv5)
+    weights.append(conv5_W)
 
     # TODO: Layer 1: Convolutional. Input = 4x4x64. Output = 4x4x128.
     conv5_2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,128,128), mean = mu, stddev = sigma))
@@ -215,6 +225,7 @@ def LeNet(x):
     regularizers = tf.nn.l2_loss(conv5_2_W)
     # TODO: Activation.
     conv5 = tf.nn.relu(conv5)
+    weights.append(conv5_2_W)
 
     # TODO: Pooling. Input = 4x4x128. Output = 2x2x128.
     conv5 = tf.nn.max_pool(conv5, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
@@ -228,7 +239,7 @@ def LeNet(x):
     regularizers += tf.nn.l2_loss(fc1_W)
     logits = tf.matmul(fc0, fc1_W) + fc1_b
 
-    return [logits, regularizers]
+    return [logits, regularizers, weights, fc0]
 
 
 rate = 0.001
@@ -237,7 +248,7 @@ x = tf.placeholder(tf.float32, (None, 64, 64, 1), name="input_data")
 y = tf.placeholder(tf.int32, (None))
 one_hot_y = tf.one_hot(y, 43)
 
-logits, regularizers = LeNet(x)
+logits, regularizers, weights, features = LeNet(x)
 cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=one_hot_y)
 loss_operation = tf.reduce_mean(cross_entropy)
 loss_operation = tf.reduce_mean(loss_operation + beta * regularizers) # L2 regularization
@@ -254,12 +265,18 @@ saver = tf.train.Saver()
 def evaluate(X_data, y_data):
     num_examples = len(X_data)
     total_accuracy = 0
+    predictions = []
+    feature_vec = []
     sess = tf.get_default_session()
     for offset in tqdm(range(0, num_examples, BATCH_SIZE)):
         batch_x, batch_y = X_data[offset:offset+BATCH_SIZE], y_data[offset:offset+BATCH_SIZE]
         accuracy = sess.run(accuracy_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 1.})
         total_accuracy += (accuracy * len(batch_x))
-    return total_accuracy / num_examples
+        for x_, y_ in zip(batch_x, batch_y):
+            x_ = np.reshape(x_, (-1, 64, 64, 1))
+            predictions.append(sess.run(prediction, feed_dict={x: x_, y: y_, keep_prob: 0.5})[0])
+            feature_vec.append(sess.run(features, feed_dict={x: x_, y: y_, keep_prob: 0.5}))
+    return (total_accuracy / num_examples, predictions, feature_vec)
 
 
 #=============TRAINING==============
@@ -267,60 +284,66 @@ def evaluate(X_data, y_data):
 ### Train the model.
 ### Calculate and report the accuracy on the training and validation set.
 ### FEATURES AND LABELS
-if((input('Would you like to train? (y/n): ')) == 'y'):
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    num_examples = len(X_train)
 
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        num_examples = len(X_train)
+    prev_val_acc = 0
+    early_stop_counter = 0
+    rate_decay = 0.0001
+    print()
+    print("Training...")
+    for i in range(EPOCHS):
+        X_train, y_train = shuffle(X_train, y_train)
+        for offset in tqdm(range(0, num_examples, BATCH_SIZE)):
+            end = offset + BATCH_SIZE
+            batch_x, batch_y = X_train[offset:end], y_train[offset:end]
+            sess.run(training_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 0.5})
 
-        prev_val_acc = 0
-        early_stop_counter = 0
-        rate_decay = 0.0001
         print()
-        print("Training...")
-        for i in range(EPOCHS):
-            X_train, y_train = shuffle(X_train, y_train)
-            for offset in tqdm(range(0, num_examples, BATCH_SIZE)):
-                end = offset + BATCH_SIZE
-                batch_x, batch_y = X_train[offset:end], y_train[offset:end]
-                sess.run(training_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 0.5})
+        print("Evaluating accuracy...")
+        validation_accuracy, val_preds, val_features = evaluate(X_valid, y_valid)
+        training_accuracy, train_preds, train_features = evaluate(X_train, y_train)
+        print("EPOCH {} ...".format(i+1))
+        print("Validation Accuracy = {:.3f}".format(validation_accuracy))
+        print("Training Accuracy = {:.3f}".format(training_accuracy))
 
+        #EARLY STOPPING
+        if(validation_accuracy > prev_val_acc):
+            early_stop_counter = 0
+            prev_val_acc = validation_accuracy
+            print("Early stopping counter: {}".format(early_stop_counter))
+            print("Learning rate: {}".format(rate))
+            print("Saving model...")
+            saver.save(sess, './models/german_recognize-11/model')
             print()
-            print("Evaluating accuracy...")
-            validation_accuracy = evaluate(X_valid, y_valid)
-            training_accuracy = evaluate(X_train, y_train)
-            print("EPOCH {} ...".format(i+1))
-            print("Validation Accuracy = {:.3f}".format(validation_accuracy))
-            print("Training Accuracy = {:.3f}".format(training_accuracy))
+            continue
+        elif(validation_accuracy <= prev_val_acc and early_stop_counter != 25):
+            early_stop_counter += 1
+            if((rate - rate_decay) < 0):
+                rate_decay *= 0.1
+                rate -= rate_decay
+            else:
+                rate -= rate_decay
+            print("Early stopping counter: {}".format(early_stop_counter))
+            print("Learning rate: {}".format(rate))
+            print()
+            continue
+        elif(validation_accuracy <= prev_val_acc and early_stop_counter == 25):
+            print("EARLY STOPPING...")
+            print()
+            break
 
-            #EARLY STOPPING
-            if(validation_accuracy > prev_val_acc):
-                early_stop_counter = 0
-                prev_val_acc = validation_accuracy
-                print("Early stopping counter: {}".format(early_stop_counter))
-                print("Learning rate: {}".format(rate))
-                print("Saving model...")
-                saver.save(sess, './models/german_recognize-11/model')
-                print()
-                continue
-            elif(validation_accuracy <= prev_val_acc and early_stop_counter != 25):
-                early_stop_counter += 1
-                if((rate - rate_decay) < 0):
-                    rate_decay *= 0.1
-                    rate -= rate_decay
-                else:
-                    rate -= rate_decay
-                print("Early stopping counter: {}".format(early_stop_counter))
-                print("Learning rate: {}".format(rate))
-                print()
-                continue
-            elif(validation_accuracy <= prev_val_acc and early_stop_counter == 25):
-                print("EARLY STOPPING...")
-                print()
-                break
+    weights = sess.run(weights)
+    predictions = train_preds
+    features = train_features
+    print("Model saved")
+    print()
 
-        print("Model saved")
-        print()
+#==========Weight Recording=========
+#===================================
+euro_data = {'weights': weights, 'predictions': predictions, 'features': train_features}
+pickle.dump(euro_data, open("nets/german_recognition/recognize-11-data.p", 'wb'))
 
 #==============TESTING==============
 #===================================
@@ -340,7 +363,7 @@ with tf.Session(graph = gg) as sess:
 
     predictions = (prediction.eval(feed_dict={x: X_test, keep_prob: 1.}))
 
-    conf_mat = sess.run(tf.confusion_matrix(y_test, predictions, n_classes))
+    conf_mat = sess.run(tf.confusion_matrix(y_test, predictions, 43))
 
     total = 0
     true_sum = 0

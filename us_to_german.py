@@ -64,11 +64,13 @@ def recognize(model_name):
 
 final_recognitions = []
 recognitions = {}
-recognitions['model1'] = recognize("german_recognize-4")
-recognitions['model2'] = recognize("german_recognize-6")
-recognitions['model3'] = recognize("german_recognize-9")
-recognitions['model4'] = recognize("german_recognize-9-1x1")
-recognitions['model5'] = recognize("german_recognize-11")
+recognitions['model1'] = recognize("recognize-4")
+recognitions['model2'] = recognize("recognize-6")
+recognitions['model3'] = recognize("recognize-9")
+recognitions['model4'] = recognize("recognize-9-1x1")
+recognitions['model5'] = recognize("recognize-11")
+
+# recognitions['model1'] = recognize("recognize-11")
 
 for num in range(len(recognitions['model1'])):
     vote = {}
@@ -84,7 +86,7 @@ for num in range(len(recognitions['model1'])):
 
 gg = tf.Graph()
 with tf.Session(graph = gg) as sess:
-    conf_mat = sess.run(tf.confusion_matrix(y_test, final_recognitions, 43))
+    conf_mat = sess.run(tf.confusion_matrix(y_test, final_recognitions, n_classes))
 
     total = 0
     true_sum = 0
@@ -122,7 +124,8 @@ with tf.Session(graph = gg) as sess:
     recall = (recall / len(recalls)) * 100
     precision = (precision / len(precisions)) * 100
 
-    with open("german_recognition_results.txt", mode='a') as f:
+    with open("us_to_german_results.txt", mode='a') as f:
+        f.write("------------------------------------\n")
         f.write("Voting Results\n")
         f.write("---\n")
         f.write("Confusion matrix\n\n")

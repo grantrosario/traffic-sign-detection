@@ -1,0 +1,121 @@
+--------------------
+--------------------
+4 layer Results
+Averaged over 10 times
+---
+Confusion matrix
+
+Predicted
+ [[26  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ ..., 
+ [ 0  0  0 ..., 23  0  0]
+ [ 0  0  0 ...,  0  9  0]
+ [ 0  0  0 ...,  0  0 22]] <-- Actual
+---
+Error rate: 6.81%
+Recall: 52.19%
+Precision: 53.40%
+Network Accuracy: 93.19%
+------------------------------------
+------------------------------------
+6 layer Network Results
+Averaged over 10 times
+---
+Confusion matrix
+
+Predicted
+ [[26  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ ..., 
+ [ 0  0  0 ..., 23  0  0]
+ [ 0  0  0 ...,  0  9  0]
+ [ 0  0  0 ...,  0  0 22]] <-- Actual
+---
+Error rate: 6.76%
+Recall: 52.26%
+Precision: 53.29%
+Network Accuracy: 93.24%
+------------------------------------
+------------------------------------
+9 1x1 Layer Network Results
+Averaged over 10 times
+---
+Confusion matrix
+
+Predicted
+ [[26  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ ..., 
+ [ 0  0  0 ..., 23  0  0]
+ [ 0  0  0 ...,  0  8  0]
+ [ 0  0  0 ...,  0  0 22]] <-- Actual
+---
+Error rate: 12.66%
+Recall: 47.22%
+Precision: 48.72%
+Network Accuracy: 87.34%
+------------------------------------
+------------------------------------
+9 Layer Network Results
+Averaged over 10 times
+---
+Confusion matrix
+
+Predicted
+ [[26  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ ..., 
+ [ 0  0  0 ..., 23  0  0]
+ [ 0  0  0 ...,  0  7  1]
+ [ 0  0  0 ...,  0  0 21]] <-- Actual
+---
+Error rate: 15.13%
+Recall: 45.78%
+Precision: 46.39%
+Network Accuracy: 84.87%
+------------------------------------
+------------------------------------
+11 Layer Network Results
+Averaged over 10 times
+---
+Confusion matrix
+
+Predicted
+ [[26  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ ..., 
+ [ 0  0  0 ..., 23  0  0]
+ [ 0  0  0 ...,  0  8  0]
+ [ 0  0  0 ...,  0  0 18]] <-- Actual
+---
+Error rate: 18.28%
+Recall: 45.04%
+Precision: 46.77%
+Network Accuracy: 81.72%
+------------------------------------
+------------------------------------
+Voting Results
+---
+Confusion matrix
+
+Predicted
+ [[26  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ [ 0  0  0 ...,  0  0  0]
+ ..., 
+ [ 0  0  0 ..., 23  0  0]
+ [ 0  0  0 ...,  0  9  0]
+ [ 0  0  0 ...,  0  0 22]] <-- Actual
+---
+Error rate: 5.95%
+Recall: 52.35%
+Precision: 51.12%
+Network Accuracy: 94.05%
+------------------------------------
+------------------------------------

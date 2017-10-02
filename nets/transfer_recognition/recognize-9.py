@@ -1,26 +1,31 @@
+import os
+import pickle
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
 import pickle
 import random
 import cv2
+import tensorflow as tf
 from tqdm import tqdm
 from sklearn.utils import shuffle
 from skimage.exposure import equalize_hist
 from tensorflow.contrib.layers import flatten
 from scipy.misc import imread, imsave, imresize
 
-import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
-import tensorflow as tf
 
-count = 0
+# 8 weight values
+
+with open("nets/german_recognition/recognize-9-weights.p", mode='rb') as f:
+    weights = pickle.load(f)
+
 acc_arr = []
 err_arr = []
 recall_arr = []
 prec_arr = []
 
-while True:
+for x in range(10):
 
     data_file = "recognition_data.p"
 
@@ -122,7 +127,7 @@ while True:
     import tensorflow as tf
     from tensorflow.contrib.layers import flatten
 
-    EPOCHS = 100
+    EPOCHS = 1000
     BATCH_SIZE = 64
     beta = 0.001
 
@@ -133,7 +138,7 @@ while True:
         ft_sz = 3
 
         # TODO: Layer 1: Convolutional. Input = 64x64x1. Output = 64x64x8.
-        conv1_W = tf.Variable(tf.truncated_normal(shape=(ft_sz,ft_sz,1,8), mean = mu, stddev = sigma))
+        conv1_W = weights[0]
         conv1_b = tf.Variable(tf.zeros(8))
         conv1   = tf.nn.conv2d(x, conv1_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv1_b
         regularizers = tf.nn.l2_loss(conv1_W)
@@ -144,7 +149,7 @@ while True:
         conv1 = tf.nn.max_pool(conv1, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
         # TODO: Layer 2: Convolutional. Output = 32x32x16.
-        conv2_W = tf.Variable(tf.truncated_normal(shape=(ft_sz, ft_sz, 8, 16), mean = mu, stddev = sigma))
+        conv2_W = weights[1]
         conv2_b = tf.Variable(tf.zeros(16))
         conv2   = tf.nn.conv2d(conv1, conv2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv2_b
         regularizers += tf.nn.l2_loss(conv2_W)
@@ -155,10 +160,18 @@ while True:
         conv2 = tf.nn.max_pool(conv2, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
         # TODO: Layer 2: Convolutional. Output = 16x16x32.
-        conv3_W = tf.Variable(tf.truncated_normal(shape=(ft_sz, ft_sz, 16, 32), mean = mu, stddev = sigma))
+        conv3_W = weights[2]
         conv3_b = tf.Variable(tf.zeros(32))
         conv3   = tf.nn.conv2d(conv2, conv3_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv3_b
         regularizers += tf.nn.l2_loss(conv3_W)
+        # TODO: Activation.
+        conv3 = tf.nn.relu(conv3)
+
+        # TODO: Layer 1: Convolutional. Input = 16x16x16. Output = 16x16x32.
+        conv3_2_W = weights[3]
+        conv3_2_b = tf.Variable(tf.zeros(32))
+        conv3   = tf.nn.conv2d(conv3, conv3_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv3_2_b
+        regularizers = tf.nn.l2_loss(conv3_2_W)
         # TODO: Activation.
         conv3 = tf.nn.relu(conv3)
 
@@ -166,10 +179,18 @@ while True:
         conv3 = tf.nn.max_pool(conv3, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
         # TODO: Layer 2: Convolutional. Output = 8x8x64.
-        conv4_W = tf.Variable(tf.truncated_normal(shape=(ft_sz, ft_sz, 32, 64), mean = mu, stddev = sigma))
+        conv4_W = weights[4]
         conv4_b = tf.Variable(tf.zeros(64))
         conv4   = tf.nn.conv2d(conv3, conv4_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv4_b
         regularizers += tf.nn.l2_loss(conv4_W)
+        # TODO: Activation.
+        conv4 = tf.nn.relu(conv4)
+
+        # TODO: Layer 1: Convolutional. Input = 8x8x32. Output = 8x8x64.
+        conv4_2_W = weights[5]
+        conv4_2_b = tf.Variable(tf.zeros(64))
+        conv4   = tf.nn.conv2d(conv4, conv4_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv4_2_b
+        regularizers = tf.nn.l2_loss(conv4_2_W)
         # TODO: Activation.
         conv4 = tf.nn.relu(conv4)
 
@@ -177,10 +198,18 @@ while True:
         conv4 = tf.nn.max_pool(conv4, ksize = [1, 2, 2, 1], strides = [1, 2, 2, 1], padding = 'SAME')
 
         # TODO: Layer 2: Convolutional. Output = 4x4x128.
-        conv5_W = tf.Variable(tf.truncated_normal(shape=(ft_sz, ft_sz, 64, 128), mean = mu, stddev = sigma))
+        conv5_W = weights[6]
         conv5_b = tf.Variable(tf.zeros(128))
         conv5   = tf.nn.conv2d(conv4, conv5_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv5_b
         regularizers += tf.nn.l2_loss(conv5_W)
+        # TODO: Activation.
+        conv5 = tf.nn.relu(conv5)
+
+        # TODO: Layer 1: Convolutional. Input = 4x4x64. Output = 4x4x128.
+        conv5_2_W = weights[7]
+        conv5_2_b = tf.Variable(tf.zeros(128))
+        conv5   = tf.nn.conv2d(conv5, conv5_2_W, strides = [1, 1, 1, 1], padding = 'SAME') + conv5_2_b
+        regularizers = tf.nn.l2_loss(conv5_2_W)
         # TODO: Activation.
         conv5 = tf.nn.relu(conv5)
 
@@ -197,6 +226,7 @@ while True:
         logits = tf.matmul(fc0, fc1_W) + fc1_b
 
         return [logits, regularizers]
+
 
     #=============EVALUATION============
     #===================================
@@ -270,7 +300,7 @@ while True:
                     print("Early stopping counter: {}".format(early_stop_counter))
                     print("Learning rate: {}".format(rate))
                     print("Saving model...")
-                    saver.save(sess, './models/recognize-6/model')
+                    saver.save(sess, './models/transfer_recognize-9/model')
                     print()
                     continue
                 elif(validation_accuracy <= prev_val_acc and early_stop_counter != 25):
@@ -298,8 +328,8 @@ while True:
     gg = tf.Graph()
     with tf.Session(graph = gg) as sess:
         sess.run(tf.global_variables_initializer())
-        saver2 = tf.train.import_meta_graph("./models/recognize-6/model.meta")
-        saver2.restore(sess, "./models/recognize-6/model")
+        saver2 = tf.train.import_meta_graph("./models/transfer_recognize-9/model.meta")
+        saver2.restore(sess, "./models/transfer_recognize-9/model")
 
         prediction = gg.get_tensor_by_name("prediction:0")
         x = gg.get_tensor_by_name("input_data:0")
@@ -353,37 +383,31 @@ while True:
         recall_arr.append(recall)
         prec_arr.append(precision)
 
-        if(count == 9):
-            a_sum = 0
-            e_sum = 0
-            r_sum = 0
-            p_sum = 0
-            for idx in range(len(acc_arr)):
-                a_sum += acc_arr[idx]
-                e_sum += err_arr[idx]
-                r_sum += recall_arr[idx]
-                p_sum += prec_arr[idx]
+a_sum = 0
+e_sum = 0
+r_sum = 0
+p_sum = 0
+for idx in range(len(acc_arr)):
+    a_sum += acc_arr[idx]
+    e_sum += err_arr[idx]
+    r_sum += recall_arr[idx]
+    p_sum += prec_arr[idx]
 
-            accuracy = a_sum/len(acc_arr)
-            error_rate = e_sum/len(err_arr)
-            recall = r_sum/len(recall_arr)
-            precision = p_sum/len(prec_arr)
+accuracy = a_sum/len(acc_arr)
+error_rate = e_sum/len(err_arr)
+recall = r_sum/len(recall_arr)
+precision = p_sum/len(prec_arr)
 
-            with open("recognition_results.txt", mode='a') as f:
-                f.write("Recognize-6 Network Results\n")
-                f.write("Averaged over {} times\n".format(count+1))
-                f.write("---\n")
-                f.write("Confusion matrix\n\n")
-                f.write("Predicted\n {} <-- Actual\n".format(conf_mat))
-                f.write("---\n")
-                f.write("Error rate: {:.2f}%\n".format(error_rate))
-                f.write("Recall: {:.2f}%\n".format(recall))
-                f.write("Precision: {:.2f}%\n".format(precision))
-                f.write("Network Accuracy: {:.2f}%\n".format(accuracy))
-                f.write("------------------------------------\n")
-                f.write("------------------------------------\n")
-
-    count += 1
-
-    if (count == 10):
-        break
+with open("transfer_recognition_results.txt", mode='a') as f:
+    f.write("9 Layer Network Results\n")
+    f.write("Averaged over 10 times\n")
+    f.write("---\n")
+    f.write("Confusion matrix\n\n")
+    f.write("Predicted\n {} <-- Actual\n".format(conf_mat))
+    f.write("---\n")
+    f.write("Error rate: {:.2f}%\n".format(error_rate))
+    f.write("Recall: {:.2f}%\n".format(recall))
+    f.write("Precision: {:.2f}%\n".format(precision))
+    f.write("Network Accuracy: {:.2f}%\n".format(accuracy))
+    f.write("------------------------------------\n")
+    f.write("------------------------------------\n")

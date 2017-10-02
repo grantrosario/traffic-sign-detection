@@ -80,7 +80,7 @@ for num in range(len(recognitions['model1'])):
 
 gg = tf.Graph()
 with tf.Session(graph = gg) as sess:
-    conf_mat = sess.run(tf.confusion_matrix(y_test, final_recognitions, n_classes))
+    conf_mat = sess.run(tf.confusion_matrix(y_test, final_recognitions, 43))
 
     total = 0
     true_sum = 0

@@ -1,19 +1,14 @@
 import numpy as np
-import sys
-import matplotlib.pyplot as plt
 import pickle
-import random
 import cv2
 import tensorflow as tf
-from tqdm import tqdm
 from sklearn.utils import shuffle
 from skimage.exposure import equalize_hist
 from tensorflow.contrib.layers import flatten
-from scipy.misc import imread, imsave, imresize
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
-data_file = "german_recognition_data.p"
+data_file = "recognition_data.p"
 
 with open(data_file, mode='rb') as f:
     data = pickle.load(f)
@@ -65,11 +60,11 @@ def recognize(model_name):
 final_recognitions = []
 xer = []
 recognitions = {}
-recognitions['model1'] = recognize("recognize-4")
-recognitions['model2'] = recognize("recognize-6")
-recognitions['model3'] = recognize("recognize-9")
-recognitions['model4'] = recognize("recognize-9-1x1")
-recognitions['model5'] = recognize("recognize-11")
+recognitions['model1'] = recognize("transfer_recognize-4")
+recognitions['model2'] = recognize("transfer_recognize-6")
+recognitions['model3'] = recognize("transfer_recognize-9")
+recognitions['model4'] = recognize("transfer_recognize-9-1x1")
+recognitions['model5'] = recognize("transfer_recognize-11")
 
 for num in range(len(recognitions['model1'])):
     vote = {}
@@ -85,7 +80,7 @@ for num in range(len(recognitions['model1'])):
 
 gg = tf.Graph()
 with tf.Session(graph = gg) as sess:
-    conf_mat = sess.run(tf.confusion_matrix(y_test, final_recognitions, n_classes))
+    conf_mat = sess.run(tf.confusion_matrix(y_test, final_recognitions, 43))
 
     total = 0
     true_sum = 0
@@ -123,7 +118,7 @@ with tf.Session(graph = gg) as sess:
     recall = (recall / len(recalls)) * 100
     precision = (precision / len(precisions)) * 100
 
-    with open("us_to_german_results.txt", mode='a') as f:
+    with open("transfer_recognition_results.txt", mode='a') as f:
         f.write("Voting Results\n")
         f.write("---\n")
         f.write("Confusion matrix\n\n")

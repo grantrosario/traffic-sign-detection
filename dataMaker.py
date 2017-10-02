@@ -86,9 +86,9 @@ class DataMaker:
                 signFeatures, y = shuffle(signFeatures, y)
 
 
-                xTrain, xTest, yTrain, yTest = trainTestSplit(signFeatures, y, test_size=0.4, random_state=42)
+                xTrain, xTest, yTrain, yTest = trainTestSplit(signFeatures, y, test_size=0.2, random_state=42)
 
-                xTrain, xVal, yTrain, yVal = trainTestSplit(xTrain, yTrain, test_size=0.4, random_state=42)
+                xTrain, xVal, yTrain, yVal = trainTestSplit(xTrain, yTrain, test_size=0.2, random_state=42)
 
                 detectionData = {'xTrain': xTrain,
                                  'xValidation': xVal,
@@ -197,12 +197,15 @@ def main():
     """
     clean = DataMaker('0_not_sign/', '1_sign/')
     clean.processData()
-    # detectionData = clean.getDetectionData()
-    # with open("detection_results.txt", mode='w') as f:
-    #     f.write("--------------------\n")
-    #     f.write("Data Created\n")
-    #     f.write("--------------------\n")
-    #     f.write("--------------------\n")
+    detectionData = clean.getDetectionData()
+    with open("detection_results.txt", mode='w') as f:
+        f.write("--------------------\n")
+        f.write("Data Created\n")
+        f.write("---\n")
+        f.write("{} training images\n".format(len(detectionData['xTrain'])))
+        f.write("{} validation images\n".format(len(detectionData['xValidation'])))
+        f.write("{} test images\n".format(len(detectionData['xTest'])))
+        f.write("--------------------\n")
 
     recognitionData = clean.getRecognitionData()
     with open("recognition_results.txt", mode='w') as f:
@@ -212,6 +215,12 @@ def main():
         f.write("{} training images\n".format(len(recognitionData['xTrain'])))
         f.write("{} validation images\n".format(len(recognitionData['xValidation'])))
         f.write("{} test images\n".format(len(recognitionData['xTest'])))
+        f.write("--------------------\n")
+
+    with open("german_recognition_results.txt", mode='w') as f:
+        f.write("--------------------\n")
+        f.write("Data Created\n")
+        f.write("--------------------\n")
         f.write("--------------------\n")
 
 
